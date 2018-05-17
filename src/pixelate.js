@@ -1,4 +1,5 @@
 const PIXI = require('pixi.js')
+const Angle = require('yy-angle')
 
 /**
  * pixi-pixelate: a container to create proper pixelated graphics
@@ -10,7 +11,7 @@ class Pixelate extends PIXI.Container
         super()
         this.cursor = { x: 0, y: 0 }
         this.tint = 0xffffff
-        this._lineStyle = { tint: 0xffffff, alpha: 1 }
+        this._lineStyle = { width: 1, tint: 0xffffff, alpha: 1 }
         this.cache = []
     }
 
@@ -102,13 +103,15 @@ class Pixelate extends PIXI.Container
 
     /**
      * set linestyle for pixelated layer
-     * TODO: add width option
+     * NOTE: width only works for line() for now
+     * @param {number} width
      * @param {number} [tint=0xffffff]
      * @param {number} [alpha=1]
      * @returns {Pixelate}
      */
-    lineStyle(tint, alpha)
+    lineStyle(width, tint, alpha)
     {
+        this._lineStyle.width = width
         this._lineStyle.tint = typeof tint !== 'undefined' ? tint : 0xffffff
         this._lineStyle.alpha = typeof alpha !== 'undefined' ? alpha : 1
         return this
@@ -135,11 +138,28 @@ class Pixelate extends PIXI.Container
      * @param {number} y1
      * @param {number} [tint]
      * @param {number} [alpha]
+     * @param {number} [lineWidth]
      * @returns {Pixelate}
      */
-    line(x0, y0, x1, y1, tint, alpha)
+    line(x0, y0, x1, y1, tint, alpha, lineWidth)
     {
-        this.drawPoints(this.linePoints(x0, y0, x1, y1), tint, alpha)
+        lineWidth = typeof lineWidth === 'undefined' ? this._lineStyle.width : lineWidth
+        if (lineWidth === 1)
+        {
+            this.drawPoints(this.linePoints(x0, y0, x1, y1), tint, alpha)
+        }
+        else
+        {
+            const points = this.linePoints(x0, y0, x1, y1)
+            const angle = Angle.angleTwoPoints(x0, y0, x1, y1) - Math.PI / 2
+            const cos = Math.cos(angle)
+            const sin = Math.sin(angle)
+            for (let i = 0; i < lineWidth; i++)
+            {
+                this.linePoints(Math.round(x0 + cos * i), Math.round(y0 + sin * i), Math.round(x1 + cos * i), Math.round(y1 + sin * i), points)
+            }
+            this.drawPoints(points, tint, alpha)
+        }
         return this
     }
 

@@ -1,6 +1,6 @@
 {
   "name": "pixi-pixelate",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "draw proper pixelated graphic primitives for pixi.js (i.e., point, line, circle, ellipse, arc, and filled versions)",
   "main": "dist/pixelate.js",
   "directories": {
@@ -35,7 +35,8 @@
     "pixi.js": ">=4.6.0"
   },
   "dependencies": {
-    "pixi-ease": "^0.18.0"
+    "pixi-ease": "^0.18.0",
+    "yy-angle": "^1.2.0"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",

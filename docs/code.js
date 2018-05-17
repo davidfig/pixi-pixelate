@@ -11,12 +11,13 @@ function test()
     pixelate.scale.set(10)
 
     pixelate
-        .lineStyle(0xff0000, 0.5)
+        .lineStyle(1, 0xff0000, 0.5)
         .moveTo(5, 5)
         .lineTo(30, 15)
 
     pixelate
-        .line(5, 20, 30, 22, 0x00ff00, 0.5)
+        .line(5, 20, 30, 25, 0x00ff00, 0.5, 3)
+        .line(5, 20, 30, 25, 1, 0.25)
 
     pixelate
         .circle(50, 12, 5, 0, 0.5)

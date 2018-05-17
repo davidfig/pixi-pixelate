@@ -153,7 +153,7 @@
 
         
         <div class="tag-source">
-            <a href="src_pixelate.js.html#line6">pixelate.js:6</a>
+            <a href="src_pixelate.js.html#line7">pixelate.js:7</a>
         </div>
         
     </div>
@@ -298,7 +298,7 @@
 
         
         <div class="tag-source">
-            <a href="src_pixelate.js.html#line656">pixelate.js:656</a>
+            <a href="src_pixelate.js.html#line676">pixelate.js:676</a>
         </div>
         
     </div>
@@ -586,7 +586,7 @@
 
         
         <div class="tag-source">
-            <a href="src_pixelate.js.html#line250">pixelate.js:250</a>
+            <a href="src_pixelate.js.html#line270">pixelate.js:270</a>
         </div>
         
     </div>
@@ -858,7 +858,7 @@ from https://en.wikipedia.org/wiki/Midpoint_circle_algorithm</p>
 
         
         <div class="tag-source">
-            <a href="src_pixelate.js.html#line289">pixelate.js:289</a>
+            <a href="src_pixelate.js.html#line309">pixelate.js:309</a>
         </div>
         
     </div>
@@ -1071,7 +1071,7 @@ from https://en.wikipedia.org/wiki/Midpoint_circle_algorithm</p>
 
         
         <div class="tag-source">
-            <a href="src_pixelate.js.html#line20">pixelate.js:20</a>
+            <a href="src_pixelate.js.html#line21">pixelate.js:21</a>
         </div>
         
     </div>
@@ -1147,7 +1147,7 @@ from https://en.wikipedia.org/wiki/Midpoint_circle_algorithm</p>
 
         
         <div class="tag-source">
-            <a href="src_pixelate.js.html#line418">pixelate.js:418</a>
+            <a href="src_pixelate.js.html#line438">pixelate.js:438</a>
         </div>
         
     </div>
@@ -1413,7 +1413,7 @@ from http://cfetch.blogspot.tw/2014/01/wap-to-draw-ellipse-using-midpoint.html</
 
         
         <div class="tag-source">
-            <a href="src_pixelate.js.html#line474">pixelate.js:474</a>
+            <a href="src_pixelate.js.html#line494">pixelate.js:494</a>
         </div>
         
     </div>
@@ -1655,7 +1655,7 @@ from http://cfetch.blogspot.tw/2014/01/wap-to-draw-ellipse-using-midpoint.html</
 
         
         <div class="tag-source">
-            <a href="src_pixelate.js.html#line671">pixelate.js:671</a>
+            <a href="src_pixelate.js.html#line691">pixelate.js:691</a>
         </div>
         
     </div>
@@ -1722,7 +1722,7 @@ from http://cfetch.blogspot.tw/2014/01/wap-to-draw-ellipse-using-midpoint.html</
             <span class="">
                 line
             </span>
-            <span class="signature">(x0, y0, x1, y1, <span class="optional">tint</span>, <span class="optional">alpha</span>)</span><span class="type-signature"><a href="Pixelate.html">Pixelate</a></span>
+            <span class="signature">(x0, y0, x1, y1, <span class="optional">tint</span>, <span class="optional">alpha</span>, <span class="optional">lineWidth</span>)</span><span class="type-signature"><a href="Pixelate.html">Pixelate</a></span>
             
             
             
@@ -1731,7 +1731,7 @@ from http://cfetch.blogspot.tw/2014/01/wap-to-draw-ellipse-using-midpoint.html</
 
         
         <div class="tag-source">
-            <a href="src_pixelate.js.html#line140">pixelate.js:140</a>
+            <a href="src_pixelate.js.html#line144">pixelate.js:144</a>
         </div>
         
     </div>
@@ -1942,6 +1942,36 @@ from http://cfetch.blogspot.tw/2014/01/wap-to-draw-ellipse-using-midpoint.html</
         </tr>
 	
 	
+	
+        <tr>
+            
+                <td class="name"><code>lineWidth</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+            
+            
+            
+            <td class="description last">
+                
+                    
+                        <span class="optional">optional</span>
+                    
+                    
+                        
+                    
+                
+                </td>
+        </tr>
+	
+	
 	</tbody>
 </table>
     
@@ -2021,7 +2051,7 @@ from http://cfetch.blogspot.tw/2014/01/wap-to-draw-ellipse-using-midpoint.html</
             <span class="">
                 lineStyle
             </span>
-            <span class="signature">(<span class="optional">tint</span>, <span class="optional">alpha</span>)</span><span class="type-signature"><a href="Pixelate.html">Pixelate</a></span>
+            <span class="signature">(width, <span class="optional">tint</span>, <span class="optional">alpha</span>)</span><span class="type-signature"><a href="Pixelate.html">Pixelate</a></span>
             
             
             
@@ -2030,7 +2060,7 @@ from http://cfetch.blogspot.tw/2014/01/wap-to-draw-ellipse-using-midpoint.html</
 
         
         <div class="tag-source">
-            <a href="src_pixelate.js.html#line110">pixelate.js:110</a>
+            <a href="src_pixelate.js.html#line112">pixelate.js:112</a>
         </div>
         
     </div>
@@ -2042,7 +2072,7 @@ from http://cfetch.blogspot.tw/2014/01/wap-to-draw-ellipse-using-midpoint.html</
     
     <div class="description">
         <p>set linestyle for pixelated layer
-TODO: add width option</p>
+NOTE: width only works for line() for now</p>
     </div>
     
 
@@ -2071,6 +2101,38 @@ TODO: add width option</p>
 	</thead>
 	
 	<tbody>
+	
+	
+        <tr>
+            
+                <td class="name"><code>width</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+            
+            
+                <td class="default">
+                
+                </td>
+            
+            
+            <td class="description last">
+                
+                    
+                    
+                        
+                    
+                
+                </td>
+        </tr>
+	
 	
 	
         <tr>
@@ -2232,7 +2294,7 @@ TODO: add width option</p>
 
         
         <div class="tag-source">
-            <a href="src_pixelate.js.html#line232">pixelate.js:232</a>
+            <a href="src_pixelate.js.html#line252">pixelate.js:252</a>
         </div>
         
     </div>
@@ -2405,7 +2467,7 @@ TODO: add width option</p>
 
         
         <div class="tag-source">
-            <a href="src_pixelate.js.html#line123">pixelate.js:123</a>
+            <a href="src_pixelate.js.html#line126">pixelate.js:126</a>
         </div>
         
     </div>
@@ -2578,7 +2640,7 @@ TODO: add width option</p>
 
         
         <div class="tag-source">
-            <a href="src_pixelate.js.html#line95">pixelate.js:95</a>
+            <a href="src_pixelate.js.html#line96">pixelate.js:96</a>
         </div>
         
     </div>
@@ -2821,7 +2883,7 @@ TODO: add width option</p>
 
         
         <div class="tag-source">
-            <a href="src_pixelate.js.html#line69">pixelate.js:69</a>
+            <a href="src_pixelate.js.html#line70">pixelate.js:70</a>
         </div>
         
     </div>
@@ -2994,7 +3056,7 @@ TODO: add width option</p>
 
         
         <div class="tag-source">
-            <a href="src_pixelate.js.html#line523">pixelate.js:523</a>
+            <a href="src_pixelate.js.html#line543">pixelate.js:543</a>
         </div>
         
     </div>
@@ -3190,7 +3252,7 @@ TODO: add width option</p>
 
         
         <div class="tag-source">
-            <a href="src_pixelate.js.html#line544">pixelate.js:544</a>
+            <a href="src_pixelate.js.html#line564">pixelate.js:564</a>
         </div>
         
     </div>
@@ -3386,7 +3448,7 @@ TODO: add width option</p>
 
         
         <div class="tag-source">
-            <a href="src_pixelate.js.html#line350">pixelate.js:350</a>
+            <a href="src_pixelate.js.html#line370">pixelate.js:370</a>
         </div>
         
     </div>
@@ -3651,7 +3713,7 @@ TODO: add width option</p>
 
         
         <div class="tag-source">
-            <a href="src_pixelate.js.html#line398">pixelate.js:398</a>
+            <a href="src_pixelate.js.html#line418">pixelate.js:418</a>
         </div>
         
     </div>
@@ -3952,7 +4014,7 @@ TODO: add width option</p>
 
         <footer class="content-size">
             <div class="footer">
-                Documentation generated by <a target="_blank" href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Thu May 17 2018 15:20:28 GMT+0800 (DST)
+                Documentation generated by <a target="_blank" href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Thu May 17 2018 16:44:25 GMT+0800 (DST)
             </div>
         </footer>
     </div>
