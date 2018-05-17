@@ -1,8 +1,9 @@
 const PIXI = require('pixi.js')
+const Random = require('yy-random')
 
 const Pixelate = require('../src/pixelate')
 
-let _renderer, g
+let _renderer
 
 function test()
 {
@@ -15,7 +16,7 @@ function test()
         .lineTo(30, 15)
 
     pixelate
-        .line(5, 20, 30, 25, 0x00ff00, 0.5, 3)
+        .line(5, 20, 30, 25, 0x00ff00, 0.5, 3, 'up')
         .line(5, 20, 30, 25, 1, 0.25)
 
     pixelate
@@ -45,6 +46,18 @@ function test()
     pixelate
         .arc(50, 60, 10, 0, 1.5, 0xff0000, 0.5)
         .point(50, 60, 0, 0.5)
+}
+
+function lines()
+{
+    const pixelate = _renderer.stage.addChild(new Pixelate())
+    pixelate.scale.set(10)
+    const w = window.innerWidth / 10
+    const h = window.innerHeight / 10
+    for (let i = 0; i < 20; i++)
+    {
+        pixelate.line(Random.get(w), Random.get(h), Random.get(w), Random.get(h), Random.color(), 0.25, Random.range(1, 6))
+    }
 }
 
 function resize()

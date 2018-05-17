@@ -159,35 +159,26 @@ class Pixelate extends PIXI.Container
         }
         else
         {
-            const points = this.linePoints(x0, y0, x1, y1)
             const angle = Angle.angleTwoPoints(x0, y0, x1, y1) + Math.PI / 2 * (lineDirection === 'up' ? -1 : 1)
             const cos = Math.cos(angle)
             const sin = Math.sin(angle)
+            const points = []
             if (lineDirection === 'center')
             {
-                for (let i = 0; i < lineWidth - 1; i++)
-                {
-                    if (i % 2)
-                    {
-                        const index = i / 2 + 1
-                        this.linePoints(Math.round(x0 + cos * index), Math.round(y0 + sin * index), Math.round(x1 + cos * index), Math.round(y1 + sin * index), points)
-                    }
-                    else
-                    {
-                        const index = Math.floor(i / 2) + 1
-                        this.linePoints(Math.round(x0 - cos * index), Math.round(y0 - sin * index), Math.round(x1 + cos * index), Math.round(y1 - sin * index), points)
-                    }
-                }
+                const half = lineWidth / 2
+                points.push(x0 + Math.round(cos * half), y0 + Math.round(sin * half))
+                points.push(x1 + Math.round(cos * half), y1 + Math.round(sin * half))
+                points.push(x1 - Math.round(cos * half), y1 - Math.round(sin * half))
+                points.push(x0 - Math.round(cos * half), y0 - Math.round(sin * half))
             }
             else
             {
-                for (let i = 0; i < lineWidth; i++)
-                {
-                    this.linePoints(Math.round(x0 + cos * i), Math.round(y0 + sin * i), Math.round(x1 + cos * i), Math.round(y1 + sin * i), points)
-                }
+                points.push(x0, y0)
+                points.push(x0 + Math.round(cos * lineWidth), y0 + Math.round(sin * lineWidth))
+                points.push(x1 + Math.round(cos * lineWidth), y1 + Math.round(sin * lineWidth))
+                points.push(x1, y1)
             }
-
-            this.drawPoints(points, tint, alpha)
+            this.polygonFill(points, tint, alpha, 1)
         }
         return this
     }
