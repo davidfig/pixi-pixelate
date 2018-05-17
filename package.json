@@ -1,8 +1,8 @@
 {
   "name": "pixi-pixelate",
   "version": "0.1.0",
-  "description": "pixi.js PixelatedGraphics: a drop-in replacement for PIXI.Graphics to create proper pixelated graphics",
-  "main": "dist/graphics.js",
+  "description": "draw proper pixelated graphic primitives for pixi.js (i.e., point, line, circle, ellipse, arc, and filled versions)",
+  "main": "dist/pixelate.js",
   "directories": {
     "doc": "docs"
   },
@@ -16,7 +16,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/davidfig/pixi-scrollbox.git"
+    "url": "git+https://github.com/davidfig/pixi-pixelate.git"
   },
   "keywords": [
     "PIXI",
@@ -28,9 +28,9 @@
   "author": "David Figatner",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/davidfig/pixi-scrollbox/issues"
+    "url": "https://github.com/davidfig/pixi-pixelate/issues"
   },
-  "homepage": "https://github.com/davidfig/pixi-scrollbox#readme",
+  "homepage": "https://github.com/davidfig/pixi-pixelate#readme",
   "peerDependencies": {
     "pixi.js": ">=4.6.0"
   },

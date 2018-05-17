@@ -1,42 +1,17 @@
-# pixi-scrollbox
-A configurable scrollbox designed for pixi.js.
+# pixi-pixelate
+draw proper pixelated graphic primitives for pixi.js (i.e., point, line, circle, ellipse, arc, and filled versions)
 
-Features:
-* scrollbox uses a mask to clip to desired boxWidth/boxHeight size
-* scrollbox scrolls with scrollbars (options.overflow=scroll)
-* scrollbox's scrollbars may be hidden when not needed (options.overflow=auto or hidden)
-* scrollbox may also be scrolled by dragging on the content window (options.dragScroll=true)
-
-[**Live Example**](https://davidfig.github.io/pixi-scrollbox/)
+[**Live Example**](https://davidfig.github.io/pixi-pixelate/)
 
 ## Rationale
-I needed a scrollbox for the UI of my game and since I had this nifty pixi-viewport, I figured it wouldn't be much work to create it. Five hours later and I realized I was a bit off on my estimates. Hopefully others will find it useful.
-
-## Simple Example
-```js
-var PIXI = require('pixi.js');
-var Viewport = require('pixi-scrollbox');
-
-// create the scrollbox
-var scrollbox = new Scrollbox({ boxWidth: 200, boxHeight: 200});
-
-// add a sprite to the scrollbox's content
-var sprite = scrollbox.content.addChild(new PIXI.Sprite(PIXI.Texture.WHITE));
-sprite.width = sprite.height = 500;
-sprite.tint = 0xff0000;
-
-// add the viewport to the stage
-var app = new PIXI.Application();
-document.body.appendChild(app.view);
-app.stage.addChild(scrollbox);
-```
+I needed primitive pixelated primitives for my games.
 
 ## Usage
 
-[![npm i pixi-scrollbox](https://nodei.co/npm/pixi-scrollbox.png?mini=true)](https://npmjs.org/package/pixi-scrollbox/)
+[![npm i pixi-pixelate](https://nodei.co/npm/pixi-pixelate.png?mini=true)](https://npmjs.org/package/pixi-pixelate/)
 
 ## API Documentation
-[https://davidfig.github.io/pixi-scrollbox/jsdoc/](https://davidfig.github.io/pixi-scrollbox/jsdoc/)
+[https://davidfig.github.io/pixi-pixelate/jsdoc/](https://davidfig.github.io/pixi-pixelate/jsdoc/)
 
 ## license  
 MIT License  
