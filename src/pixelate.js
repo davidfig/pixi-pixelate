@@ -17,6 +17,7 @@ class Pixelate extends PIXI.Container
 
     /**
      * clear all graphics
+     * @returns {Pixelate}
      */
     clear()
     {
@@ -24,6 +25,7 @@ class Pixelate extends PIXI.Container
         {
             this.cache.push(this.children.pop())
         }
+        return this
     }
 
     /**
