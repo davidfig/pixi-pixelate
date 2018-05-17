@@ -1,10 +1,9 @@
-(function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
+(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 const PIXI = require('pixi.js')
-const FPS = require('yy-fps')
 
 const Pixelate = require('../src/pixelate')
 
-let _renderer, _fps, g
+let _renderer, g
 
 function test()
 {
@@ -56,7 +55,6 @@ function resize()
 
 window.onload = function ()
 {
-    _fps = new FPS({ side: 'bottom-left' })
     _renderer = new PIXI.Application({ transparent: true, width: window.innerWidth, height: window.innerHeight, resolution: window.devicePixelRatio })
     document.body.appendChild(_renderer.view)
     _renderer.view.style.position = 'fixed'
@@ -69,13 +67,9 @@ window.onload = function ()
 
     window.addEventListener('resize', resize)
 
-    PIXI.ticker.shared.add(() =>
-    {
-        _fps.frame()
-    })
     require('./highlight')()
 }
-},{"../src/pixelate":375,"./highlight":2,"pixi.js":321,"yy-fps":374}],2:[function(require,module,exports){
+},{"../src/pixelate":364,"./highlight":2,"pixi.js":320}],2:[function(require,module,exports){
 const forkMe = require('fork-me-github')
 
 module.exports = function highlight()
@@ -18391,234 +18385,6 @@ module.exports = function parseURI (str, opts) {
 }
 
 },{}],188:[function(require,module,exports){
-(function (process){
-// Copyright Joyent, Inc. and other Node contributors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to permit
-// persons to whom the Software is furnished to do so, subject to the
-// following conditions:
-//
-// The above copyright notice and this permission notice shall be included
-// in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-// USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-// resolves . and .. elements in a path array with directory names there
-// must be no slashes, empty elements, or device names (c:\) in the array
-// (so also no leading and trailing slashes - it does not distinguish
-// relative and absolute paths)
-function normalizeArray(parts, allowAboveRoot) {
-  // if the path tries to go above the root, `up` ends up > 0
-  var up = 0;
-  for (var i = parts.length - 1; i >= 0; i--) {
-    var last = parts[i];
-    if (last === '.') {
-      parts.splice(i, 1);
-    } else if (last === '..') {
-      parts.splice(i, 1);
-      up++;
-    } else if (up) {
-      parts.splice(i, 1);
-      up--;
-    }
-  }
-
-  // if the path is allowed to go above the root, restore leading ..s
-  if (allowAboveRoot) {
-    for (; up--; up) {
-      parts.unshift('..');
-    }
-  }
-
-  return parts;
-}
-
-// Split a filename into [root, dir, basename, ext], unix version
-// 'root' is just a slash, or nothing.
-var splitPathRe =
-    /^(\/?|)([\s\S]*?)((?:\.{1,2}|[^\/]+?|)(\.[^.\/]*|))(?:[\/]*)$/;
-var splitPath = function(filename) {
-  return splitPathRe.exec(filename).slice(1);
-};
-
-// path.resolve([from ...], to)
-// posix version
-exports.resolve = function() {
-  var resolvedPath = '',
-      resolvedAbsolute = false;
-
-  for (var i = arguments.length - 1; i >= -1 && !resolvedAbsolute; i--) {
-    var path = (i >= 0) ? arguments[i] : process.cwd();
-
-    // Skip empty and invalid entries
-    if (typeof path !== 'string') {
-      throw new TypeError('Arguments to path.resolve must be strings');
-    } else if (!path) {
-      continue;
-    }
-
-    resolvedPath = path + '/' + resolvedPath;
-    resolvedAbsolute = path.charAt(0) === '/';
-  }
-
-  // At this point the path should be resolved to a full absolute path, but
-  // handle relative paths to be safe (might happen when process.cwd() fails)
-
-  // Normalize the path
-  resolvedPath = normalizeArray(filter(resolvedPath.split('/'), function(p) {
-    return !!p;
-  }), !resolvedAbsolute).join('/');
-
-  return ((resolvedAbsolute ? '/' : '') + resolvedPath) || '.';
-};
-
-// path.normalize(path)
-// posix version
-exports.normalize = function(path) {
-  var isAbsolute = exports.isAbsolute(path),
-      trailingSlash = substr(path, -1) === '/';
-
-  // Normalize the path
-  path = normalizeArray(filter(path.split('/'), function(p) {
-    return !!p;
-  }), !isAbsolute).join('/');
-
-  if (!path && !isAbsolute) {
-    path = '.';
-  }
-  if (path && trailingSlash) {
-    path += '/';
-  }
-
-  return (isAbsolute ? '/' : '') + path;
-};
-
-// posix version
-exports.isAbsolute = function(path) {
-  return path.charAt(0) === '/';
-};
-
-// posix version
-exports.join = function() {
-  var paths = Array.prototype.slice.call(arguments, 0);
-  return exports.normalize(filter(paths, function(p, index) {
-    if (typeof p !== 'string') {
-      throw new TypeError('Arguments to path.join must be strings');
-    }
-    return p;
-  }).join('/'));
-};
-
-
-// path.relative(from, to)
-// posix version
-exports.relative = function(from, to) {
-  from = exports.resolve(from).substr(1);
-  to = exports.resolve(to).substr(1);
-
-  function trim(arr) {
-    var start = 0;
-    for (; start < arr.length; start++) {
-      if (arr[start] !== '') break;
-    }
-
-    var end = arr.length - 1;
-    for (; end >= 0; end--) {
-      if (arr[end] !== '') break;
-    }
-
-    if (start > end) return [];
-    return arr.slice(start, end - start + 1);
-  }
-
-  var fromParts = trim(from.split('/'));
-  var toParts = trim(to.split('/'));
-
-  var length = Math.min(fromParts.length, toParts.length);
-  var samePartsLength = length;
-  for (var i = 0; i < length; i++) {
-    if (fromParts[i] !== toParts[i]) {
-      samePartsLength = i;
-      break;
-    }
-  }
-
-  var outputParts = [];
-  for (var i = samePartsLength; i < fromParts.length; i++) {
-    outputParts.push('..');
-  }
-
-  outputParts = outputParts.concat(toParts.slice(samePartsLength));
-
-  return outputParts.join('/');
-};
-
-exports.sep = '/';
-exports.delimiter = ':';
-
-exports.dirname = function(path) {
-  var result = splitPath(path),
-      root = result[0],
-      dir = result[1];
-
-  if (!root && !dir) {
-    // No dirname whatsoever
-    return '.';
-  }
-
-  if (dir) {
-    // It has a dirname, strip trailing slash
-    dir = dir.substr(0, dir.length - 1);
-  }
-
-  return root + dir;
-};
-
-
-exports.basename = function(path, ext) {
-  var f = splitPath(path)[2];
-  // TODO: make this comparison case-insensitive on windows?
-  if (ext && f.substr(-1 * ext.length) === ext) {
-    f = f.substr(0, f.length - ext.length);
-  }
-  return f;
-};
-
-
-exports.extname = function(path) {
-  return splitPath(path)[3];
-};
-
-function filter (xs, f) {
-    if (xs.filter) return xs.filter(f);
-    var res = [];
-    for (var i = 0; i < xs.length; i++) {
-        if (f(xs[i], i, xs)) res.push(xs[i]);
-    }
-    return res;
-}
-
-// String.prototype.substr - negative index don't work in IE8
-var substr = 'ab'.substr(-1) === 'b'
-    ? function (str, start, len) { return str.substr(start, len) }
-    : function (str, start, len) {
-        if (start < 0) start = str.length + start;
-        return str.substr(start, len);
-    }
-;
-
-}).call(this,require('_process'))
-},{"_process":357}],189:[function(require,module,exports){
 var EMPTY_ARRAY_BUFFER = new ArrayBuffer(0);
 
 /**
@@ -18739,7 +18505,7 @@ Buffer.prototype.destroy = function(){
 
 module.exports = Buffer;
 
-},{}],190:[function(require,module,exports){
+},{}],189:[function(require,module,exports){
 
 var Texture = require('./GLTexture');
 
@@ -18967,7 +18733,7 @@ Framebuffer.createFloat32 = function(gl, width, height, data)
 
 module.exports = Framebuffer;
 
-},{"./GLTexture":192}],191:[function(require,module,exports){
+},{"./GLTexture":191}],190:[function(require,module,exports){
 
 var compileProgram = require('./shader/compileProgram'),
 	extractAttributes = require('./shader/extractAttributes'),
@@ -19063,7 +18829,7 @@ Shader.prototype.destroy = function()
 
 module.exports = Shader;
 
-},{"./shader/compileProgram":197,"./shader/extractAttributes":199,"./shader/extractUniforms":200,"./shader/generateUniformAccessObject":201,"./shader/setPrecision":205}],192:[function(require,module,exports){
+},{"./shader/compileProgram":196,"./shader/extractAttributes":198,"./shader/extractUniforms":199,"./shader/generateUniformAccessObject":200,"./shader/setPrecision":204}],191:[function(require,module,exports){
 
 /**
  * Helper class to create a WebGL Texture
@@ -19398,7 +19164,7 @@ Texture.fromData = function(gl, data, width, height)
 
 module.exports = Texture;
 
-},{}],193:[function(require,module,exports){
+},{}],192:[function(require,module,exports){
 
 // state object//
 var setVertexAttribArrays = require( './setVertexAttribArrays' );
@@ -19666,7 +19432,7 @@ VertexArrayObject.prototype.getSize = function()
     return attrib.buffer.data.length / (( attrib.stride/4 ) || attrib.attribute.size);
 };
 
-},{"./setVertexAttribArrays":196}],194:[function(require,module,exports){
+},{"./setVertexAttribArrays":195}],193:[function(require,module,exports){
 
 /**
  * Helper class to create a webGL Context
@@ -19694,7 +19460,7 @@ var createContext = function(canvas, options)
 
 module.exports = createContext;
 
-},{}],195:[function(require,module,exports){
+},{}],194:[function(require,module,exports){
 var gl = {
     createContext:          require('./createContext'),
     setVertexAttribArrays:  require('./setVertexAttribArrays'),
@@ -19721,7 +19487,7 @@ if (typeof window !== 'undefined')
     window.PIXI.glCore = gl;
 }
 
-},{"./GLBuffer":189,"./GLFramebuffer":190,"./GLShader":191,"./GLTexture":192,"./VertexArrayObject":193,"./createContext":194,"./setVertexAttribArrays":196,"./shader":202}],196:[function(require,module,exports){
+},{"./GLBuffer":188,"./GLFramebuffer":189,"./GLShader":190,"./GLTexture":191,"./VertexArrayObject":192,"./createContext":193,"./setVertexAttribArrays":195,"./shader":201}],195:[function(require,module,exports){
 // var GL_MAP = {};
 
 /**
@@ -19778,7 +19544,7 @@ var setVertexAttribArrays = function (gl, attribs, state)
 
 module.exports = setVertexAttribArrays;
 
-},{}],197:[function(require,module,exports){
+},{}],196:[function(require,module,exports){
 
 /**
  * @class
@@ -19860,7 +19626,7 @@ var compileShader = function (gl, type, src)
 
 module.exports = compileProgram;
 
-},{}],198:[function(require,module,exports){
+},{}],197:[function(require,module,exports){
 /**
  * @class
  * @memberof PIXI.glCore.shader
@@ -19940,7 +19706,7 @@ var booleanArray = function(size)
 
 module.exports = defaultValue;
 
-},{}],199:[function(require,module,exports){
+},{}],198:[function(require,module,exports){
 
 var mapType = require('./mapType');
 var mapSize = require('./mapSize');
@@ -19983,7 +19749,7 @@ var pointer = function(type, normalized, stride, start){
 
 module.exports = extractAttributes;
 
-},{"./mapSize":203,"./mapType":204}],200:[function(require,module,exports){
+},{"./mapSize":202,"./mapType":203}],199:[function(require,module,exports){
 var mapType = require('./mapType');
 var defaultValue = require('./defaultValue');
 
@@ -20020,7 +19786,7 @@ var extractUniforms = function(gl, program)
 
 module.exports = extractUniforms;
 
-},{"./defaultValue":198,"./mapType":204}],201:[function(require,module,exports){
+},{"./defaultValue":197,"./mapType":203}],200:[function(require,module,exports){
 /**
  * Extracts the attributes
  * @class
@@ -20143,7 +19909,7 @@ function getUniformGroup(nameTokens, uniform)
 
 module.exports = generateUniformAccessObject;
 
-},{}],202:[function(require,module,exports){
+},{}],201:[function(require,module,exports){
 module.exports = {
     compileProgram: require('./compileProgram'),
     defaultValue: require('./defaultValue'),
@@ -20154,7 +19920,7 @@ module.exports = {
     mapSize: require('./mapSize'),
     mapType: require('./mapType')
 };
-},{"./compileProgram":197,"./defaultValue":198,"./extractAttributes":199,"./extractUniforms":200,"./generateUniformAccessObject":201,"./mapSize":203,"./mapType":204,"./setPrecision":205}],203:[function(require,module,exports){
+},{"./compileProgram":196,"./defaultValue":197,"./extractAttributes":198,"./extractUniforms":199,"./generateUniformAccessObject":200,"./mapSize":202,"./mapType":203,"./setPrecision":204}],202:[function(require,module,exports){
 /**
  * @class
  * @memberof PIXI.glCore.shader
@@ -20192,7 +19958,7 @@ var GLSL_TO_SIZE = {
 
 module.exports = mapSize;
 
-},{}],204:[function(require,module,exports){
+},{}],203:[function(require,module,exports){
 
 
 var mapType = function(gl, type) 
@@ -20240,7 +20006,7 @@ var GL_TO_GLSL_TYPES = {
 
 module.exports = mapType;
 
-},{}],205:[function(require,module,exports){
+},{}],204:[function(require,module,exports){
 /**
  * Sets the float precision on the shader. If the precision is already present this function will do nothing
  * @param {string} src       the shader source
@@ -20260,7 +20026,7 @@ var setPrecision = function(src, precision)
 
 module.exports = setPrecision;
 
-},{}],206:[function(require,module,exports){
+},{}],205:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -20754,7 +20520,7 @@ exports.default = AccessibilityManager;
 core.WebGLRenderer.registerPlugin('accessibility', AccessibilityManager);
 core.CanvasRenderer.registerPlugin('accessibility', AccessibilityManager);
 
-},{"../core":231,"./accessibleTarget":207,"ismobilejs":184}],207:[function(require,module,exports){
+},{"../core":230,"./accessibleTarget":206,"ismobilejs":184}],206:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -20812,7 +20578,7 @@ exports.default = {
   _accessibleDiv: false
 };
 
-},{}],208:[function(require,module,exports){
+},{}],207:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -20837,7 +20603,7 @@ Object.defineProperty(exports, 'AccessibilityManager', {
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-},{"./AccessibilityManager":206,"./accessibleTarget":207}],209:[function(require,module,exports){
+},{"./AccessibilityManager":205,"./accessibleTarget":206}],208:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -21061,7 +20827,7 @@ var Application = function () {
 
 exports.default = Application;
 
-},{"./autoDetectRenderer":211,"./const":212,"./display/Container":214,"./settings":267,"./ticker":287}],210:[function(require,module,exports){
+},{"./autoDetectRenderer":210,"./const":211,"./display/Container":213,"./settings":266,"./ticker":286}],209:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -21128,7 +20894,7 @@ var Shader = function (_GLShader) {
 
 exports.default = Shader;
 
-},{"./settings":267,"pixi-gl-core":195}],211:[function(require,module,exports){
+},{"./settings":266,"pixi-gl-core":194}],210:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -21197,7 +20963,7 @@ function autoDetectRenderer(options, arg1, arg2, arg3) {
     return new _CanvasRenderer2.default(options, arg1, arg2);
 }
 
-},{"./renderers/canvas/CanvasRenderer":243,"./renderers/webgl/WebGLRenderer":250,"./utils":291}],212:[function(require,module,exports){
+},{"./renderers/canvas/CanvasRenderer":242,"./renderers/webgl/WebGLRenderer":249,"./utils":290}],211:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -21540,7 +21306,7 @@ var UPDATE_PRIORITY = exports.UPDATE_PRIORITY = {
   UTILITY: -50
 };
 
-},{}],213:[function(require,module,exports){
+},{}],212:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -21883,7 +21649,7 @@ var Bounds = function () {
 
 exports.default = Bounds;
 
-},{"../math":236}],214:[function(require,module,exports){
+},{"../math":235}],213:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -22501,7 +22267,7 @@ var Container = function (_DisplayObject) {
 exports.default = Container;
 Container.prototype.containerUpdateTransform = Container.prototype.updateTransform;
 
-},{"../utils":291,"./DisplayObject":215}],215:[function(require,module,exports){
+},{"../utils":290,"./DisplayObject":214}],214:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -23195,7 +22961,7 @@ var DisplayObject = function (_EventEmitter) {
 exports.default = DisplayObject;
 DisplayObject.prototype.displayObjectUpdateTransform = DisplayObject.prototype.updateTransform;
 
-},{"../const":212,"../math":236,"../settings":267,"./Bounds":213,"./Transform":216,"./TransformStatic":218,"eventemitter3":356}],216:[function(require,module,exports){
+},{"../const":211,"../math":235,"../settings":266,"./Bounds":212,"./Transform":215,"./TransformStatic":217,"eventemitter3":355}],215:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -23376,7 +23142,7 @@ var Transform = function (_TransformBase) {
 
 exports.default = Transform;
 
-},{"../math":236,"./TransformBase":217}],217:[function(require,module,exports){
+},{"../math":235,"./TransformBase":216}],216:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -23463,7 +23229,7 @@ TransformBase.prototype.updateWorldTransform = TransformBase.prototype.updateTra
 
 TransformBase.IDENTITY = new TransformBase();
 
-},{"../math":236}],218:[function(require,module,exports){
+},{"../math":235}],217:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -23673,7 +23439,7 @@ var TransformStatic = function (_TransformBase) {
 
 exports.default = TransformStatic;
 
-},{"../math":236,"./TransformBase":217}],219:[function(require,module,exports){
+},{"../math":235,"./TransformBase":216}],218:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -24878,7 +24644,7 @@ exports.default = Graphics;
 
 Graphics._SPRITE_TEXTURE = null;
 
-},{"../const":212,"../display/Bounds":213,"../display/Container":214,"../math":236,"../renderers/canvas/CanvasRenderer":243,"../sprites/Sprite":268,"../textures/RenderTexture":279,"../textures/Texture":281,"../utils":291,"./GraphicsData":220,"./utils/bezierCurveTo":222}],220:[function(require,module,exports){
+},{"../const":211,"../display/Bounds":212,"../display/Container":213,"../math":235,"../renderers/canvas/CanvasRenderer":242,"../sprites/Sprite":267,"../textures/RenderTexture":278,"../textures/Texture":280,"../utils":290,"./GraphicsData":219,"./utils/bezierCurveTo":221}],219:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -25014,7 +24780,7 @@ var GraphicsData = function () {
 
 exports.default = GraphicsData;
 
-},{}],221:[function(require,module,exports){
+},{}],220:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -25283,7 +25049,7 @@ exports.default = CanvasGraphicsRenderer;
 
 _CanvasRenderer2.default.registerPlugin('graphics', CanvasGraphicsRenderer);
 
-},{"../../const":212,"../../renderers/canvas/CanvasRenderer":243}],222:[function(require,module,exports){
+},{"../../const":211,"../../renderers/canvas/CanvasRenderer":242}],221:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -25333,7 +25099,7 @@ function bezierCurveTo(fromX, fromY, cpX, cpY, cpX2, cpY2, toX, toY) {
     return path;
 }
 
-},{}],223:[function(require,module,exports){
+},{}],222:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -25598,7 +25364,7 @@ exports.default = GraphicsRenderer;
 
 _WebGLRenderer2.default.registerPlugin('graphics', GraphicsRenderer);
 
-},{"../../const":212,"../../renderers/webgl/WebGLRenderer":250,"../../renderers/webgl/utils/ObjectRenderer":260,"../../utils":291,"./WebGLGraphicsData":224,"./shaders/PrimitiveShader":225,"./utils/buildCircle":226,"./utils/buildPoly":228,"./utils/buildRectangle":229,"./utils/buildRoundedRectangle":230}],224:[function(require,module,exports){
+},{"../../const":211,"../../renderers/webgl/WebGLRenderer":249,"../../renderers/webgl/utils/ObjectRenderer":259,"../../utils":290,"./WebGLGraphicsData":223,"./shaders/PrimitiveShader":224,"./utils/buildCircle":225,"./utils/buildPoly":227,"./utils/buildRectangle":228,"./utils/buildRoundedRectangle":229}],223:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -25741,7 +25507,7 @@ var WebGLGraphicsData = function () {
 
 exports.default = WebGLGraphicsData;
 
-},{"pixi-gl-core":195}],225:[function(require,module,exports){
+},{"pixi-gl-core":194}],224:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -25786,7 +25552,7 @@ var PrimitiveShader = function (_Shader) {
 
 exports.default = PrimitiveShader;
 
-},{"../../../Shader":210}],226:[function(require,module,exports){
+},{"../../../Shader":209}],225:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -25879,7 +25645,7 @@ function buildCircle(graphicsData, webGLData, webGLDataNativeLines) {
     }
 }
 
-},{"../../../const":212,"../../../utils":291,"./buildLine":227}],227:[function(require,module,exports){
+},{"../../../const":211,"../../../utils":290,"./buildLine":226}],226:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -26149,7 +25915,7 @@ function buildNativeLine(graphicsData, webGLData) {
     }
 }
 
-},{"../../../math":236,"../../../utils":291}],228:[function(require,module,exports){
+},{"../../../math":235,"../../../utils":290}],227:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -26235,7 +26001,7 @@ function buildPoly(graphicsData, webGLData, webGLDataNativeLines) {
     }
 }
 
-},{"../../../utils":291,"./buildLine":227,"earcut":4}],229:[function(require,module,exports){
+},{"../../../utils":290,"./buildLine":226,"earcut":4}],228:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -26311,7 +26077,7 @@ function buildRectangle(graphicsData, webGLData, webGLDataNativeLines) {
     }
 }
 
-},{"../../../utils":291,"./buildLine":227}],230:[function(require,module,exports){
+},{"../../../utils":290,"./buildLine":226}],229:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -26467,7 +26233,7 @@ function quadraticBezierCurve(fromX, fromY, cpX, cpY, toX, toY) {
     return points;
 }
 
-},{"../../../utils":291,"./buildLine":227,"earcut":4}],231:[function(require,module,exports){
+},{"../../../utils":290,"./buildLine":226,"earcut":4}],230:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -26853,7 +26619,7 @@ exports.WebGLRenderer = _WebGLRenderer2.default; /**
                                                   * @namespace PIXI
                                                   */
 
-},{"./Application":209,"./Shader":210,"./autoDetectRenderer":211,"./const":212,"./display/Bounds":213,"./display/Container":214,"./display/DisplayObject":215,"./display/Transform":216,"./display/TransformBase":217,"./display/TransformStatic":218,"./graphics/Graphics":219,"./graphics/GraphicsData":220,"./graphics/canvas/CanvasGraphicsRenderer":221,"./graphics/webgl/GraphicsRenderer":223,"./math":236,"./renderers/canvas/CanvasRenderer":243,"./renderers/canvas/utils/CanvasRenderTarget":245,"./renderers/webgl/WebGLRenderer":250,"./renderers/webgl/filters/Filter":252,"./renderers/webgl/filters/spriteMask/SpriteMaskFilter":255,"./renderers/webgl/managers/WebGLManager":259,"./renderers/webgl/utils/ObjectRenderer":260,"./renderers/webgl/utils/Quad":261,"./renderers/webgl/utils/RenderTarget":262,"./settings":267,"./sprites/Sprite":268,"./sprites/canvas/CanvasSpriteRenderer":269,"./sprites/canvas/CanvasTinter":270,"./sprites/webgl/SpriteRenderer":272,"./text/Text":274,"./text/TextMetrics":275,"./text/TextStyle":276,"./textures/BaseRenderTexture":277,"./textures/BaseTexture":278,"./textures/RenderTexture":279,"./textures/Spritesheet":280,"./textures/Texture":281,"./textures/TextureMatrix":282,"./textures/TextureUvs":283,"./textures/VideoBaseTexture":284,"./ticker":287,"./utils":291,"pixi-gl-core":195}],232:[function(require,module,exports){
+},{"./Application":208,"./Shader":209,"./autoDetectRenderer":210,"./const":211,"./display/Bounds":212,"./display/Container":213,"./display/DisplayObject":214,"./display/Transform":215,"./display/TransformBase":216,"./display/TransformStatic":217,"./graphics/Graphics":218,"./graphics/GraphicsData":219,"./graphics/canvas/CanvasGraphicsRenderer":220,"./graphics/webgl/GraphicsRenderer":222,"./math":235,"./renderers/canvas/CanvasRenderer":242,"./renderers/canvas/utils/CanvasRenderTarget":244,"./renderers/webgl/WebGLRenderer":249,"./renderers/webgl/filters/Filter":251,"./renderers/webgl/filters/spriteMask/SpriteMaskFilter":254,"./renderers/webgl/managers/WebGLManager":258,"./renderers/webgl/utils/ObjectRenderer":259,"./renderers/webgl/utils/Quad":260,"./renderers/webgl/utils/RenderTarget":261,"./settings":266,"./sprites/Sprite":267,"./sprites/canvas/CanvasSpriteRenderer":268,"./sprites/canvas/CanvasTinter":269,"./sprites/webgl/SpriteRenderer":271,"./text/Text":273,"./text/TextMetrics":274,"./text/TextStyle":275,"./textures/BaseRenderTexture":276,"./textures/BaseTexture":277,"./textures/RenderTexture":278,"./textures/Spritesheet":279,"./textures/Texture":280,"./textures/TextureMatrix":281,"./textures/TextureUvs":282,"./textures/VideoBaseTexture":283,"./ticker":286,"./utils":290,"pixi-gl-core":194}],231:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -27046,7 +26812,7 @@ var GroupD8 = {
 
 exports.default = GroupD8;
 
-},{"./Matrix":233}],233:[function(require,module,exports){
+},{"./Matrix":232}],232:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -27568,7 +27334,7 @@ var Matrix = function () {
 
 exports.default = Matrix;
 
-},{"../const":212,"./Point":235}],234:[function(require,module,exports){
+},{"../const":211,"./Point":234}],233:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -27685,7 +27451,7 @@ var ObservablePoint = function () {
 
 exports.default = ObservablePoint;
 
-},{}],235:[function(require,module,exports){
+},{}],234:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -27776,7 +27542,7 @@ var Point = function () {
 
 exports.default = Point;
 
-},{}],236:[function(require,module,exports){
+},{}],235:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -27864,7 +27630,7 @@ Object.defineProperty(exports, 'RoundedRectangle', {
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-},{"./GroupD8":232,"./Matrix":233,"./ObservablePoint":234,"./Point":235,"./shapes/Circle":237,"./shapes/Ellipse":238,"./shapes/Polygon":239,"./shapes/Rectangle":240,"./shapes/RoundedRectangle":241}],237:[function(require,module,exports){
+},{"./GroupD8":231,"./Matrix":232,"./ObservablePoint":233,"./Point":234,"./shapes/Circle":236,"./shapes/Ellipse":237,"./shapes/Polygon":238,"./shapes/Rectangle":239,"./shapes/RoundedRectangle":240}],236:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -27978,7 +27744,7 @@ var Circle = function () {
 
 exports.default = Circle;
 
-},{"../../const":212,"./Rectangle":240}],238:[function(require,module,exports){
+},{"../../const":211,"./Rectangle":239}],237:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -28100,7 +27866,7 @@ var Ellipse = function () {
 
 exports.default = Ellipse;
 
-},{"../../const":212,"./Rectangle":240}],239:[function(require,module,exports){
+},{"../../const":211,"./Rectangle":239}],238:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -28231,7 +27997,7 @@ var Polygon = function () {
 
 exports.default = Polygon;
 
-},{"../../const":212,"../Point":235}],240:[function(require,module,exports){
+},{"../../const":211,"../Point":234}],239:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -28494,7 +28260,7 @@ var Rectangle = function () {
 
 exports.default = Rectangle;
 
-},{"../../const":212}],241:[function(require,module,exports){
+},{"../../const":211}],240:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -28627,7 +28393,7 @@ var RoundedRectangle = function () {
 
 exports.default = RoundedRectangle;
 
-},{"../../const":212}],242:[function(require,module,exports){
+},{"../../const":211}],241:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -28992,7 +28758,7 @@ var SystemRenderer = function (_EventEmitter) {
 
 exports.default = SystemRenderer;
 
-},{"../const":212,"../display/Container":214,"../math":236,"../settings":267,"../textures/RenderTexture":279,"../utils":291,"eventemitter3":356}],243:[function(require,module,exports){
+},{"../const":211,"../display/Container":213,"../math":235,"../settings":266,"../textures/RenderTexture":278,"../utils":290,"eventemitter3":355}],242:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -29357,7 +29123,7 @@ var CanvasRenderer = function (_SystemRenderer) {
 exports.default = CanvasRenderer;
 _utils.pluginTarget.mixin(CanvasRenderer);
 
-},{"../../const":212,"../../settings":267,"../../utils":291,"../SystemRenderer":242,"./utils/CanvasMaskManager":244,"./utils/CanvasRenderTarget":245,"./utils/mapCanvasBlendModesToPixi":247}],244:[function(require,module,exports){
+},{"../../const":211,"../../settings":266,"../../utils":290,"../SystemRenderer":241,"./utils/CanvasMaskManager":243,"./utils/CanvasRenderTarget":244,"./utils/mapCanvasBlendModesToPixi":246}],243:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -29526,7 +29292,7 @@ var CanvasMaskManager = function () {
 
 exports.default = CanvasMaskManager;
 
-},{"../../../const":212}],245:[function(require,module,exports){
+},{"../../../const":211}],244:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -29650,7 +29416,7 @@ var CanvasRenderTarget = function () {
 
 exports.default = CanvasRenderTarget;
 
-},{"../../../settings":267}],246:[function(require,module,exports){
+},{"../../../settings":266}],245:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -29711,7 +29477,7 @@ function canUseNewCanvasBlendModes() {
     return data[0] === 255 && data[1] === 0 && data[2] === 0;
 }
 
-},{}],247:[function(require,module,exports){
+},{}],246:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -29783,7 +29549,7 @@ function mapCanvasBlendModesToPixi() {
     return array;
 }
 
-},{"../../../const":212,"./canUseNewCanvasBlendModes":246}],248:[function(require,module,exports){
+},{"../../../const":211,"./canUseNewCanvasBlendModes":245}],247:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -29903,7 +29669,7 @@ var TextureGarbageCollector = function () {
 
 exports.default = TextureGarbageCollector;
 
-},{"../../const":212,"../../settings":267}],249:[function(require,module,exports){
+},{"../../const":211,"../../settings":266}],248:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -30159,7 +29925,7 @@ var TextureManager = function () {
 
 exports.default = TextureManager;
 
-},{"../../const":212,"../../utils":291,"./utils/RenderTarget":262,"pixi-gl-core":195}],250:[function(require,module,exports){
+},{"../../const":211,"../../utils":290,"./utils/RenderTarget":261,"pixi-gl-core":194}],249:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -30976,7 +30742,7 @@ var WebGLRenderer = function (_SystemRenderer) {
 exports.default = WebGLRenderer;
 _utils.pluginTarget.mixin(WebGLRenderer);
 
-},{"../../const":212,"../../textures/BaseTexture":278,"../../utils":291,"../SystemRenderer":242,"./TextureGarbageCollector":248,"./TextureManager":249,"./WebGLState":251,"./managers/FilterManager":256,"./managers/MaskManager":257,"./managers/StencilManager":258,"./utils/ObjectRenderer":260,"./utils/RenderTarget":262,"./utils/mapWebGLDrawModesToPixi":265,"./utils/validateContext":266,"pixi-gl-core":195}],251:[function(require,module,exports){
+},{"../../const":211,"../../textures/BaseTexture":277,"../../utils":290,"../SystemRenderer":241,"./TextureGarbageCollector":247,"./TextureManager":248,"./WebGLState":250,"./managers/FilterManager":255,"./managers/MaskManager":256,"./managers/StencilManager":257,"./utils/ObjectRenderer":259,"./utils/RenderTarget":261,"./utils/mapWebGLDrawModesToPixi":264,"./utils/validateContext":265,"pixi-gl-core":194}],250:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -31256,7 +31022,7 @@ var WebGLState = function () {
 
 exports.default = WebGLState;
 
-},{"./utils/mapWebGLBlendModesToPixi":264}],252:[function(require,module,exports){
+},{"./utils/mapWebGLBlendModesToPixi":263}],251:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -31452,7 +31218,7 @@ var Filter = function () {
 
 exports.default = Filter;
 
-},{"../../../const":212,"../../../settings":267,"../../../utils":291,"./extractUniformsFromSrc":253}],253:[function(require,module,exports){
+},{"../../../const":211,"../../../settings":266,"../../../utils":290,"./extractUniformsFromSrc":252}],252:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -31514,7 +31280,7 @@ function extractUniformsFromString(string) {
     return uniforms;
 }
 
-},{"pixi-gl-core":195}],254:[function(require,module,exports){
+},{"pixi-gl-core":194}],253:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -31574,7 +31340,7 @@ function calculateSpriteMatrix(outputMatrix, filterArea, textureSize, sprite) {
     return mappedMatrix;
 }
 
-},{"../../../math":236}],255:[function(require,module,exports){
+},{"../../../math":235}],254:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -31662,7 +31428,7 @@ var SpriteMaskFilter = function (_Filter) {
 
 exports.default = SpriteMaskFilter;
 
-},{"../../../../math":236,"../../../../textures/TextureMatrix":282,"../Filter":252,"path":188}],256:[function(require,module,exports){
+},{"../../../../math":235,"../../../../textures/TextureMatrix":281,"../Filter":251,"path":365}],255:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -32302,7 +32068,7 @@ var FilterManager = function (_WebGLManager) {
 
 exports.default = FilterManager;
 
-},{"../../../Shader":210,"../../../math":236,"../filters/filterTransforms":254,"../utils/Quad":261,"../utils/RenderTarget":262,"./WebGLManager":259,"bit-twiddle":3}],257:[function(require,module,exports){
+},{"../../../Shader":209,"../../../math":235,"../filters/filterTransforms":253,"../utils/Quad":260,"../utils/RenderTarget":261,"./WebGLManager":258,"bit-twiddle":3}],256:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -32512,7 +32278,7 @@ var MaskManager = function (_WebGLManager) {
 
 exports.default = MaskManager;
 
-},{"../filters/spriteMask/SpriteMaskFilter":255,"./WebGLManager":259}],258:[function(require,module,exports){
+},{"../filters/spriteMask/SpriteMaskFilter":254,"./WebGLManager":258}],257:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -32665,7 +32431,7 @@ var StencilManager = function (_WebGLManager) {
 
 exports.default = StencilManager;
 
-},{"./WebGLManager":259}],259:[function(require,module,exports){
+},{"./WebGLManager":258}],258:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -32720,7 +32486,7 @@ var WebGLManager = function () {
 
 exports.default = WebGLManager;
 
-},{}],260:[function(require,module,exports){
+},{}],259:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -32798,7 +32564,7 @@ var ObjectRenderer = function (_WebGLManager) {
 
 exports.default = ObjectRenderer;
 
-},{"../managers/WebGLManager":259}],261:[function(require,module,exports){
+},{"../managers/WebGLManager":258}],260:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -32979,7 +32745,7 @@ var Quad = function () {
 
 exports.default = Quad;
 
-},{"../../../utils/createIndicesForQuads":289,"pixi-gl-core":195}],262:[function(require,module,exports){
+},{"../../../utils/createIndicesForQuads":288,"pixi-gl-core":194}],261:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -33306,7 +33072,7 @@ var RenderTarget = function () {
 
 exports.default = RenderTarget;
 
-},{"../../../const":212,"../../../math":236,"../../../settings":267,"pixi-gl-core":195}],263:[function(require,module,exports){
+},{"../../../const":211,"../../../math":235,"../../../settings":266,"pixi-gl-core":194}],262:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -33381,7 +33147,7 @@ function generateIfTestSrc(maxIfs) {
     return src;
 }
 
-},{"pixi-gl-core":195}],264:[function(require,module,exports){
+},{"pixi-gl-core":194}],263:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -33430,7 +33196,7 @@ function mapWebGLBlendModesToPixi(gl) {
     return array;
 }
 
-},{"../../../const":212}],265:[function(require,module,exports){
+},{"../../../const":211}],264:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -33462,7 +33228,7 @@ function mapWebGLDrawModesToPixi(gl) {
   return object;
 }
 
-},{"../../../const":212}],266:[function(require,module,exports){
+},{"../../../const":211}],265:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -33478,7 +33244,7 @@ function validateContext(gl) {
     }
 }
 
-},{}],267:[function(require,module,exports){
+},{}],266:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -33723,7 +33489,7 @@ exports.default = {
   MESH_CANVAS_PADDING: 0
 };
 
-},{"./utils/canUploadSameBuffer":288,"./utils/maxRecommendedTextures":293}],268:[function(require,module,exports){
+},{"./utils/canUploadSameBuffer":287,"./utils/maxRecommendedTextures":292}],267:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -34346,7 +34112,7 @@ var Sprite = function (_Container) {
 
 exports.default = Sprite;
 
-},{"../const":212,"../display/Container":214,"../math":236,"../textures/Texture":281,"../utils":291}],269:[function(require,module,exports){
+},{"../const":211,"../display/Container":213,"../math":235,"../textures/Texture":280,"../utils":290}],268:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -34499,7 +34265,7 @@ exports.default = CanvasSpriteRenderer;
 
 _CanvasRenderer2.default.registerPlugin('sprite', CanvasSpriteRenderer);
 
-},{"../../const":212,"../../math":236,"../../renderers/canvas/CanvasRenderer":243,"./CanvasTinter":270}],270:[function(require,module,exports){
+},{"../../const":211,"../../math":235,"../../renderers/canvas/CanvasRenderer":242,"./CanvasTinter":269}],269:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -34750,7 +34516,7 @@ CanvasTinter.tintMethod = CanvasTinter.canUseMultiply ? CanvasTinter.tintWithMul
 
 exports.default = CanvasTinter;
 
-},{"../../renderers/canvas/utils/canUseNewCanvasBlendModes":246,"../../utils":291}],271:[function(require,module,exports){
+},{"../../renderers/canvas/utils/canUseNewCanvasBlendModes":245,"../../utils":290}],270:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -34803,7 +34569,7 @@ var Buffer = function () {
 
 exports.default = Buffer;
 
-},{}],272:[function(require,module,exports){
+},{}],271:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -35354,7 +35120,7 @@ exports.default = SpriteRenderer;
 
 _WebGLRenderer2.default.registerPlugin('sprite', SpriteRenderer);
 
-},{"../../renderers/webgl/WebGLRenderer":250,"../../renderers/webgl/utils/ObjectRenderer":260,"../../renderers/webgl/utils/checkMaxIfStatmentsInShader":263,"../../settings":267,"../../utils":291,"../../utils/createIndicesForQuads":289,"./BatchBuffer":271,"./generateMultiTextureShader":273,"bit-twiddle":3,"pixi-gl-core":195}],273:[function(require,module,exports){
+},{"../../renderers/webgl/WebGLRenderer":249,"../../renderers/webgl/utils/ObjectRenderer":259,"../../renderers/webgl/utils/checkMaxIfStatmentsInShader":262,"../../settings":266,"../../utils":290,"../../utils/createIndicesForQuads":288,"./BatchBuffer":270,"./generateMultiTextureShader":272,"bit-twiddle":3,"pixi-gl-core":194}],272:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -35417,7 +35183,7 @@ function generateSampleSrc(maxTextures) {
     return src;
 }
 
-},{"../../Shader":210,"path":188}],274:[function(require,module,exports){
+},{"../../Shader":209,"path":365}],273:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -36072,7 +35838,7 @@ var Text = function (_Sprite) {
 
 exports.default = Text;
 
-},{"../const":212,"../math":236,"../settings":267,"../sprites/Sprite":268,"../textures/Texture":281,"../utils":291,"../utils/trimCanvas":296,"./TextMetrics":275,"./TextStyle":276}],275:[function(require,module,exports){
+},{"../const":211,"../math":235,"../settings":266,"../sprites/Sprite":267,"../textures/Texture":280,"../utils":290,"../utils/trimCanvas":295,"./TextMetrics":274,"./TextStyle":275}],274:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -36452,7 +36218,7 @@ TextMetrics._context = canvas.getContext('2d');
  */
 TextMetrics._fonts = {};
 
-},{}],276:[function(require,module,exports){
+},{}],275:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -37254,7 +37020,7 @@ function deepCopyProperties(target, source, propertyObj) {
     }
 }
 
-},{"../const":212,"../utils":291}],277:[function(require,module,exports){
+},{"../const":211,"../utils":290}],276:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -37416,7 +37182,7 @@ var BaseRenderTexture = function (_BaseTexture) {
 
 exports.default = BaseRenderTexture;
 
-},{"../settings":267,"./BaseTexture":278}],278:[function(require,module,exports){
+},{"../settings":266,"./BaseTexture":277}],277:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -38262,7 +38028,7 @@ var BaseTexture = function (_EventEmitter) {
 
 exports.default = BaseTexture;
 
-},{"../settings":267,"../utils":291,"../utils/determineCrossOrigin":290,"bit-twiddle":3,"eventemitter3":356}],279:[function(require,module,exports){
+},{"../settings":266,"../utils":290,"../utils/determineCrossOrigin":289,"bit-twiddle":3,"eventemitter3":355}],278:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -38416,7 +38182,7 @@ var RenderTexture = function (_Texture) {
 
 exports.default = RenderTexture;
 
-},{"./BaseRenderTexture":277,"./Texture":281}],280:[function(require,module,exports){
+},{"./BaseRenderTexture":276,"./Texture":280}],279:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -38681,7 +38447,7 @@ var Spritesheet = function () {
 
 exports.default = Spritesheet;
 
-},{"../":231,"../utils":291}],281:[function(require,module,exports){
+},{"../":230,"../utils":290}],280:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -39373,7 +39139,7 @@ Texture.WHITE = createWhiteTexture();
 removeAllHandlers(Texture.WHITE);
 removeAllHandlers(Texture.WHITE.baseTexture);
 
-},{"../math":236,"../settings":267,"../utils":291,"./BaseTexture":278,"./TextureUvs":283,"./VideoBaseTexture":284,"eventemitter3":356}],282:[function(require,module,exports){
+},{"../math":235,"../settings":266,"../utils":290,"./BaseTexture":277,"./TextureUvs":282,"./VideoBaseTexture":283,"eventemitter3":355}],281:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -39537,7 +39303,7 @@ var TextureMatrix = function () {
 
 exports.default = TextureMatrix;
 
-},{"../math/Matrix":233}],283:[function(require,module,exports){
+},{"../math/Matrix":232}],282:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -39642,7 +39408,7 @@ var TextureUvs = function () {
 
 exports.default = TextureUvs;
 
-},{"../math/GroupD8":232}],284:[function(require,module,exports){
+},{"../math/GroupD8":231}],283:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -39984,7 +39750,7 @@ function createSource(path, type) {
     return source;
 }
 
-},{"../const":212,"../ticker":287,"../utils":291,"../utils/determineCrossOrigin":290,"./BaseTexture":278}],285:[function(require,module,exports){
+},{"../const":211,"../ticker":286,"../utils":290,"../utils/determineCrossOrigin":289,"./BaseTexture":277}],284:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -40457,7 +40223,7 @@ var Ticker = function () {
 
 exports.default = Ticker;
 
-},{"../const":212,"../settings":267,"./TickerListener":286}],286:[function(require,module,exports){
+},{"../const":211,"../settings":266,"./TickerListener":285}],285:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -40631,7 +40397,7 @@ var TickerListener = function () {
 
 exports.default = TickerListener;
 
-},{}],287:[function(require,module,exports){
+},{}],286:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -40711,7 +40477,7 @@ shared.destroy = function () {
 exports.shared = shared;
 exports.Ticker = _Ticker2.default;
 
-},{"./Ticker":285}],288:[function(require,module,exports){
+},{"./Ticker":284}],287:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -40725,7 +40491,7 @@ function canUploadSameBuffer() {
 	return !ios;
 }
 
-},{}],289:[function(require,module,exports){
+},{}],288:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -40759,7 +40525,7 @@ function createIndicesForQuads(size) {
     return indices;
 }
 
-},{}],290:[function(require,module,exports){
+},{}],289:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -40815,7 +40581,7 @@ function determineCrossOrigin(url) {
     return '';
 }
 
-},{"url":370}],291:[function(require,module,exports){
+},{"url":371}],290:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -41297,7 +41063,7 @@ function premultiplyTintToRgba(tint, alpha, out, premultiply) {
     return out;
 }
 
-},{"../const":212,"../settings":267,"./mapPremultipliedBlendModes":292,"./mixin":294,"./pluginTarget":295,"earcut":4,"eventemitter3":356,"ismobilejs":184,"remove-array-items":362}],292:[function(require,module,exports){
+},{"../const":211,"../settings":266,"./mapPremultipliedBlendModes":291,"./mixin":293,"./pluginTarget":294,"earcut":4,"eventemitter3":355,"ismobilejs":184,"remove-array-items":356}],291:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -41340,7 +41106,7 @@ function mapPremultipliedBlendModes() {
     return array;
 }
 
-},{"../const":212}],293:[function(require,module,exports){
+},{"../const":211}],292:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -41362,7 +41128,7 @@ function maxRecommendedTextures(max) {
     return max;
 }
 
-},{"ismobilejs":184}],294:[function(require,module,exports){
+},{"ismobilejs":184}],293:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -41424,7 +41190,7 @@ function performMixins() {
     mixins.length = 0;
 }
 
-},{}],295:[function(require,module,exports){
+},{}],294:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -41490,7 +41256,7 @@ exports.default = {
     }
 };
 
-},{}],296:[function(require,module,exports){
+},{}],295:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -41566,7 +41332,7 @@ function trimCanvas(canvas) {
     };
 }
 
-},{}],297:[function(require,module,exports){
+},{}],296:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -42722,7 +42488,7 @@ function deprecation(core) {
     }
 }
 
-},{}],298:[function(require,module,exports){
+},{}],297:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -42902,7 +42668,7 @@ exports.default = CanvasExtract;
 
 core.CanvasRenderer.registerPlugin('extract', CanvasExtract);
 
-},{"../../core":231}],299:[function(require,module,exports){
+},{"../../core":230}],298:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -42927,7 +42693,7 @@ Object.defineProperty(exports, 'canvas', {
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-},{"./canvas/CanvasExtract":298,"./webgl/WebGLExtract":300}],300:[function(require,module,exports){
+},{"./canvas/CanvasExtract":297,"./webgl/WebGLExtract":299}],299:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -43162,7 +42928,7 @@ exports.default = WebGLExtract;
 
 core.WebGLRenderer.registerPlugin('extract', WebGLExtract);
 
-},{"../../core":231}],301:[function(require,module,exports){
+},{"../../core":230}],300:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -43571,7 +43337,7 @@ var AnimatedSprite = function (_core$Sprite) {
 
 exports.default = AnimatedSprite;
 
-},{"../core":231}],302:[function(require,module,exports){
+},{"../core":230}],301:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -44162,7 +43928,7 @@ exports.default = BitmapText;
 
 BitmapText.fonts = {};
 
-},{"../core":231,"../core/math/ObservablePoint":234,"../core/settings":267,"../core/utils":291}],303:[function(require,module,exports){
+},{"../core":230,"../core/math/ObservablePoint":233,"../core/settings":266,"../core/utils":290}],302:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -44608,7 +44374,7 @@ var TilingSprite = function (_core$Sprite) {
 
 exports.default = TilingSprite;
 
-},{"../core":231,"../core/sprites/canvas/CanvasTinter":270}],304:[function(require,module,exports){
+},{"../core":230,"../core/sprites/canvas/CanvasTinter":269}],303:[function(require,module,exports){
 'use strict';
 
 var _core = require('../core');
@@ -45012,7 +44778,7 @@ DisplayObject.prototype._cacheAsBitmapDestroy = function _cacheAsBitmapDestroy(o
     this.destroy(options);
 };
 
-},{"../core":231,"../core/textures/BaseTexture":278,"../core/textures/Texture":281,"../core/utils":291}],305:[function(require,module,exports){
+},{"../core":230,"../core/textures/BaseTexture":277,"../core/textures/Texture":280,"../core/utils":290}],304:[function(require,module,exports){
 'use strict';
 
 var _core = require('../core');
@@ -45047,7 +44813,7 @@ core.Container.prototype.getChildByName = function getChildByName(name) {
     return null;
 };
 
-},{"../core":231}],306:[function(require,module,exports){
+},{"../core":230}],305:[function(require,module,exports){
 'use strict';
 
 var _core = require('../core');
@@ -45081,7 +44847,7 @@ core.DisplayObject.prototype.getGlobalPosition = function getGlobalPosition() {
     return point;
 };
 
-},{"../core":231}],307:[function(require,module,exports){
+},{"../core":230}],306:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -45133,7 +44899,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 // imported for side effect of extending the prototype only, contains no exports
 
-},{"./AnimatedSprite":301,"./BitmapText":302,"./TilingSprite":303,"./cacheAsBitmap":304,"./getChildByName":305,"./getGlobalPosition":306,"./webgl/TilingSpriteRenderer":308}],308:[function(require,module,exports){
+},{"./AnimatedSprite":300,"./BitmapText":301,"./TilingSprite":302,"./cacheAsBitmap":303,"./getChildByName":304,"./getGlobalPosition":305,"./webgl/TilingSpriteRenderer":307}],307:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -45295,7 +45061,7 @@ exports.default = TilingSpriteRenderer;
 
 core.WebGLRenderer.registerPlugin('tilingSprite', TilingSpriteRenderer);
 
-},{"../../core":231,"../../core/const":212,"path":188}],309:[function(require,module,exports){
+},{"../../core":230,"../../core/const":211,"path":365}],308:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -45379,7 +45145,7 @@ var AlphaFilter = function (_core$Filter) {
 
 exports.default = AlphaFilter;
 
-},{"../../core":231,"path":188}],310:[function(require,module,exports){
+},{"../../core":230,"path":365}],309:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -45553,7 +45319,7 @@ var BlurFilter = function (_core$Filter) {
 
 exports.default = BlurFilter;
 
-},{"../../core":231,"./BlurXFilter":311,"./BlurYFilter":312}],311:[function(require,module,exports){
+},{"../../core":230,"./BlurXFilter":310,"./BlurYFilter":311}],310:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -45719,7 +45485,7 @@ var BlurXFilter = function (_core$Filter) {
 
 exports.default = BlurXFilter;
 
-},{"../../core":231,"./generateBlurFragSource":313,"./generateBlurVertSource":314,"./getMaxBlurKernelSize":315}],312:[function(require,module,exports){
+},{"../../core":230,"./generateBlurFragSource":312,"./generateBlurVertSource":313,"./getMaxBlurKernelSize":314}],311:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -45884,7 +45650,7 @@ var BlurYFilter = function (_core$Filter) {
 
 exports.default = BlurYFilter;
 
-},{"../../core":231,"./generateBlurFragSource":313,"./generateBlurVertSource":314,"./getMaxBlurKernelSize":315}],313:[function(require,module,exports){
+},{"../../core":230,"./generateBlurFragSource":312,"./generateBlurVertSource":313,"./getMaxBlurKernelSize":314}],312:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -45931,7 +45697,7 @@ function generateFragBlurSource(kernelSize) {
     return fragSource;
 }
 
-},{}],314:[function(require,module,exports){
+},{}],313:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -45975,7 +45741,7 @@ function generateVertBlurSource(kernelSize, x) {
     return vertSource;
 }
 
-},{}],315:[function(require,module,exports){
+},{}],314:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -45991,7 +45757,7 @@ function getMaxKernelSize(gl) {
     return kernelSize;
 }
 
-},{}],316:[function(require,module,exports){
+},{}],315:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -46542,7 +46308,7 @@ var ColorMatrixFilter = function (_core$Filter) {
 exports.default = ColorMatrixFilter;
 ColorMatrixFilter.prototype.grayscale = ColorMatrixFilter.prototype.greyscale;
 
-},{"../../core":231,"path":188}],317:[function(require,module,exports){
+},{"../../core":230,"path":365}],316:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -46650,7 +46416,7 @@ var DisplacementFilter = function (_core$Filter) {
 
 exports.default = DisplacementFilter;
 
-},{"../../core":231,"path":188}],318:[function(require,module,exports){
+},{"../../core":230,"path":365}],317:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -46704,7 +46470,7 @@ var FXAAFilter = function (_core$Filter) {
 
 exports.default = FXAAFilter;
 
-},{"../../core":231,"path":188}],319:[function(require,module,exports){
+},{"../../core":230,"path":365}],318:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -46783,7 +46549,7 @@ Object.defineProperty(exports, 'AlphaFilter', {
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-},{"./alpha/AlphaFilter":309,"./blur/BlurFilter":310,"./blur/BlurXFilter":311,"./blur/BlurYFilter":312,"./colormatrix/ColorMatrixFilter":316,"./displacement/DisplacementFilter":317,"./fxaa/FXAAFilter":318,"./noise/NoiseFilter":320}],320:[function(require,module,exports){
+},{"./alpha/AlphaFilter":308,"./blur/BlurFilter":309,"./blur/BlurXFilter":310,"./blur/BlurYFilter":311,"./colormatrix/ColorMatrixFilter":315,"./displacement/DisplacementFilter":316,"./fxaa/FXAAFilter":317,"./noise/NoiseFilter":319}],319:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -46880,7 +46646,7 @@ var NoiseFilter = function (_core$Filter) {
 
 exports.default = NoiseFilter;
 
-},{"../../core":231,"path":188}],321:[function(require,module,exports){
+},{"../../core":230,"path":365}],320:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -46994,7 +46760,7 @@ if (typeof _deprecation2.default === 'function') {
 global.PIXI = exports; // eslint-disable-line
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./accessibility":208,"./core":231,"./deprecation":297,"./extract":299,"./extras":307,"./filters":319,"./interaction":326,"./loaders":329,"./mesh":338,"./particles":341,"./polyfill":348,"./prepare":352}],322:[function(require,module,exports){
+},{"./accessibility":207,"./core":230,"./deprecation":296,"./extract":298,"./extras":306,"./filters":318,"./interaction":325,"./loaders":328,"./mesh":337,"./particles":340,"./polyfill":347,"./prepare":351}],321:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -47217,7 +46983,7 @@ var InteractionData = function () {
 
 exports.default = InteractionData;
 
-},{"../core":231}],323:[function(require,module,exports){
+},{"../core":230}],322:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -47300,7 +47066,7 @@ var InteractionEvent = function () {
 
 exports.default = InteractionEvent;
 
-},{}],324:[function(require,module,exports){
+},{}],323:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -49071,7 +48837,7 @@ exports.default = InteractionManager;
 core.WebGLRenderer.registerPlugin('interaction', InteractionManager);
 core.CanvasRenderer.registerPlugin('interaction', InteractionManager);
 
-},{"../core":231,"./InteractionData":322,"./InteractionEvent":323,"./InteractionTrackingData":325,"./interactiveTarget":327,"eventemitter3":356}],325:[function(require,module,exports){
+},{"../core":230,"./InteractionData":321,"./InteractionEvent":322,"./InteractionTrackingData":324,"./interactiveTarget":326,"eventemitter3":355}],324:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -49247,7 +49013,7 @@ InteractionTrackingData.FLAGS = Object.freeze({
     RIGHT_DOWN: 1 << 2
 });
 
-},{}],326:[function(require,module,exports){
+},{}],325:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -49299,7 +49065,7 @@ Object.defineProperty(exports, 'InteractionEvent', {
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-},{"./InteractionData":322,"./InteractionEvent":323,"./InteractionManager":324,"./InteractionTrackingData":325,"./interactiveTarget":327}],327:[function(require,module,exports){
+},{"./InteractionData":321,"./InteractionEvent":322,"./InteractionManager":323,"./InteractionTrackingData":324,"./interactiveTarget":326}],326:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -49416,7 +49182,7 @@ exports.default = {
   _trackedPointers: undefined
 };
 
-},{}],328:[function(require,module,exports){
+},{}],327:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -49508,7 +49274,7 @@ function parse(resource, texture) {
     resource.bitmapFont = _extras.BitmapText.registerFont(resource.data, texture);
 }
 
-},{"../core":231,"../extras":307,"path":188,"resource-loader":367}],329:[function(require,module,exports){
+},{"../core":230,"../extras":306,"path":365,"resource-loader":361}],328:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -49636,7 +49402,7 @@ AppPrototype.destroy = function destroy(removeView) {
     this._parentDestroy(removeView);
 };
 
-},{"../core/Application":209,"./bitmapFontParser":328,"./loader":330,"./spritesheetParser":331,"./textureParser":332,"resource-loader":367}],330:[function(require,module,exports){
+},{"../core/Application":208,"./bitmapFontParser":327,"./loader":329,"./spritesheetParser":330,"./textureParser":331,"resource-loader":361}],329:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -49807,7 +49573,7 @@ var Resource = _resourceLoader2.default.Resource;
 
 Resource.setExtensionXhrType('fnt', Resource.XHR_RESPONSE_TYPE.DOCUMENT);
 
-},{"./bitmapFontParser":328,"./spritesheetParser":331,"./textureParser":332,"eventemitter3":356,"resource-loader":367,"resource-loader/lib/middlewares/parsing/blob":368}],331:[function(require,module,exports){
+},{"./bitmapFontParser":327,"./spritesheetParser":330,"./textureParser":331,"eventemitter3":355,"resource-loader":361,"resource-loader/lib/middlewares/parsing/blob":362}],330:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -49871,7 +49637,7 @@ function getResourcePath(resource, baseUrl) {
     return _url2.default.resolve(resource.url.replace(baseUrl, ''), resource.data.meta.image);
 }
 
-},{"../core":231,"resource-loader":367,"url":370}],332:[function(require,module,exports){
+},{"../core":230,"resource-loader":361,"url":371}],331:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -49894,7 +49660,7 @@ var _Texture2 = _interopRequireDefault(_Texture);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-},{"../core/textures/Texture":281,"resource-loader":367}],333:[function(require,module,exports){
+},{"../core/textures/Texture":280,"resource-loader":361}],332:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -50263,7 +50029,7 @@ Mesh.DRAW_MODES = {
   TRIANGLES: 1
 };
 
-},{"../core":231,"../core/textures/Texture":281}],334:[function(require,module,exports){
+},{"../core":230,"../core/textures/Texture":280}],333:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -50650,7 +50416,7 @@ var NineSlicePlane = function (_Plane) {
 
 exports.default = NineSlicePlane;
 
-},{"./Plane":335}],335:[function(require,module,exports){
+},{"./Plane":334}],334:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -50791,7 +50557,7 @@ var Plane = function (_Mesh) {
 
 exports.default = Plane;
 
-},{"./Mesh":333}],336:[function(require,module,exports){
+},{"./Mesh":332}],335:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -51027,7 +50793,7 @@ var Rope = function (_Mesh) {
 
 exports.default = Rope;
 
-},{"./Mesh":333}],337:[function(require,module,exports){
+},{"./Mesh":332}],336:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -51313,7 +51079,7 @@ exports.default = MeshSpriteRenderer;
 
 core.CanvasRenderer.registerPlugin('mesh', MeshSpriteRenderer);
 
-},{"../../core":231,"../Mesh":333}],338:[function(require,module,exports){
+},{"../../core":230,"../Mesh":332}],337:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -51374,7 +51140,7 @@ Object.defineProperty(exports, 'Rope', {
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-},{"./Mesh":333,"./NineSlicePlane":334,"./Plane":335,"./Rope":336,"./canvas/CanvasMeshRenderer":337,"./webgl/MeshRenderer":339}],339:[function(require,module,exports){
+},{"./Mesh":332,"./NineSlicePlane":333,"./Plane":334,"./Rope":335,"./canvas/CanvasMeshRenderer":336,"./webgl/MeshRenderer":338}],338:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -51525,7 +51291,7 @@ exports.default = MeshRenderer;
 
 core.WebGLRenderer.registerPlugin('mesh', MeshRenderer);
 
-},{"../../core":231,"../Mesh":333,"path":188,"pixi-gl-core":195}],340:[function(require,module,exports){
+},{"../../core":230,"../Mesh":332,"path":365,"pixi-gl-core":194}],339:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -51915,7 +51681,7 @@ var ParticleContainer = function (_core$Container) {
 
 exports.default = ParticleContainer;
 
-},{"../core":231,"../core/utils":291}],341:[function(require,module,exports){
+},{"../core":230,"../core/utils":290}],340:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -51940,7 +51706,7 @@ Object.defineProperty(exports, 'ParticleRenderer', {
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-},{"./ParticleContainer":340,"./webgl/ParticleRenderer":343}],342:[function(require,module,exports){
+},{"./ParticleContainer":339,"./webgl/ParticleRenderer":342}],341:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -52189,7 +51955,7 @@ var ParticleBuffer = function () {
 
 exports.default = ParticleBuffer;
 
-},{"../../core/utils/createIndicesForQuads":289,"pixi-gl-core":195}],343:[function(require,module,exports){
+},{"../../core/utils/createIndicesForQuads":288,"pixi-gl-core":194}],342:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -52670,7 +52436,7 @@ exports.default = ParticleRenderer;
 
 core.WebGLRenderer.registerPlugin('particle', ParticleRenderer);
 
-},{"../../core":231,"../../core/utils":291,"./ParticleBuffer":342,"./ParticleShader":344}],344:[function(require,module,exports){
+},{"../../core":230,"../../core/utils":290,"./ParticleBuffer":341,"./ParticleShader":343}],343:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -52713,7 +52479,7 @@ var ParticleShader = function (_Shader) {
 
 exports.default = ParticleShader;
 
-},{"../../core/Shader":210}],345:[function(require,module,exports){
+},{"../../core/Shader":209}],344:[function(require,module,exports){
 "use strict";
 
 // References:
@@ -52731,7 +52497,7 @@ if (!Math.sign) {
     };
 }
 
-},{}],346:[function(require,module,exports){
+},{}],345:[function(require,module,exports){
 'use strict';
 
 // References:
@@ -52743,7 +52509,7 @@ if (!Number.isInteger) {
     };
 }
 
-},{}],347:[function(require,module,exports){
+},{}],346:[function(require,module,exports){
 'use strict';
 
 var _objectAssign = require('object-assign');
@@ -52758,7 +52524,7 @@ if (!Object.assign) {
 // https://github.com/sindresorhus/object-assign
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign
 
-},{"object-assign":186}],348:[function(require,module,exports){
+},{"object-assign":186}],347:[function(require,module,exports){
 'use strict';
 
 require('./Object.assign');
@@ -52785,7 +52551,7 @@ if (!window.Uint16Array) {
     window.Uint16Array = Array;
 }
 
-},{"./Math.sign":345,"./Number.isInteger":346,"./Object.assign":347,"./requestAnimationFrame":349}],349:[function(require,module,exports){
+},{"./Math.sign":344,"./Number.isInteger":345,"./Object.assign":346,"./requestAnimationFrame":348}],348:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -52862,7 +52628,7 @@ if (!global.cancelAnimationFrame) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],350:[function(require,module,exports){
+},{}],349:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -53350,7 +53116,7 @@ function findTextStyle(item, queue) {
     return false;
 }
 
-},{"../core":231,"./limiters/CountLimiter":353}],351:[function(require,module,exports){
+},{"../core":230,"./limiters/CountLimiter":352}],350:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -53470,7 +53236,7 @@ function uploadBaseTextures(prepare, item) {
 
 core.CanvasRenderer.registerPlugin('prepare', CanvasPrepare);
 
-},{"../../core":231,"../BasePrepare":350}],352:[function(require,module,exports){
+},{"../../core":230,"../BasePrepare":349}],351:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -53522,7 +53288,7 @@ Object.defineProperty(exports, 'TimeLimiter', {
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-},{"./BasePrepare":350,"./canvas/CanvasPrepare":351,"./limiters/CountLimiter":353,"./limiters/TimeLimiter":354,"./webgl/WebGLPrepare":355}],353:[function(require,module,exports){
+},{"./BasePrepare":349,"./canvas/CanvasPrepare":350,"./limiters/CountLimiter":352,"./limiters/TimeLimiter":353,"./webgl/WebGLPrepare":354}],352:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -53580,7 +53346,7 @@ var CountLimiter = function () {
 
 exports.default = CountLimiter;
 
-},{}],354:[function(require,module,exports){
+},{}],353:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -53638,7 +53404,7 @@ var TimeLimiter = function () {
 
 exports.default = TimeLimiter;
 
-},{}],355:[function(require,module,exports){
+},{}],354:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -53760,7 +53526,7 @@ function findGraphics(item, queue) {
 
 core.WebGLRenderer.registerPlugin('prepare', WebGLPrepare);
 
-},{"../../core":231,"../BasePrepare":350}],356:[function(require,module,exports){
+},{"../../core":230,"../BasePrepare":349}],355:[function(require,module,exports){
 'use strict';
 
 var has = Object.prototype.hasOwnProperty
@@ -54073,909 +53839,7 @@ if ('undefined' !== typeof module) {
   module.exports = EventEmitter;
 }
 
-},{}],357:[function(require,module,exports){
-// shim for using process in browser
-var process = module.exports = {};
-
-// cached from whatever global is present so that test runners that stub it
-// don't break things.  But we need to wrap it in a try catch in case it is
-// wrapped in strict mode code which doesn't define any globals.  It's inside a
-// function because try/catches deoptimize in certain engines.
-
-var cachedSetTimeout;
-var cachedClearTimeout;
-
-function defaultSetTimout() {
-    throw new Error('setTimeout has not been defined');
-}
-function defaultClearTimeout () {
-    throw new Error('clearTimeout has not been defined');
-}
-(function () {
-    try {
-        if (typeof setTimeout === 'function') {
-            cachedSetTimeout = setTimeout;
-        } else {
-            cachedSetTimeout = defaultSetTimout;
-        }
-    } catch (e) {
-        cachedSetTimeout = defaultSetTimout;
-    }
-    try {
-        if (typeof clearTimeout === 'function') {
-            cachedClearTimeout = clearTimeout;
-        } else {
-            cachedClearTimeout = defaultClearTimeout;
-        }
-    } catch (e) {
-        cachedClearTimeout = defaultClearTimeout;
-    }
-} ())
-function runTimeout(fun) {
-    if (cachedSetTimeout === setTimeout) {
-        //normal enviroments in sane situations
-        return setTimeout(fun, 0);
-    }
-    // if setTimeout wasn't available but was latter defined
-    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
-        cachedSetTimeout = setTimeout;
-        return setTimeout(fun, 0);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedSetTimeout(fun, 0);
-    } catch(e){
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
-            return cachedSetTimeout.call(null, fun, 0);
-        } catch(e){
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
-            return cachedSetTimeout.call(this, fun, 0);
-        }
-    }
-
-
-}
-function runClearTimeout(marker) {
-    if (cachedClearTimeout === clearTimeout) {
-        //normal enviroments in sane situations
-        return clearTimeout(marker);
-    }
-    // if clearTimeout wasn't available but was latter defined
-    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
-        cachedClearTimeout = clearTimeout;
-        return clearTimeout(marker);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedClearTimeout(marker);
-    } catch (e){
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
-            return cachedClearTimeout.call(null, marker);
-        } catch (e){
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
-            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
-            return cachedClearTimeout.call(this, marker);
-        }
-    }
-
-
-
-}
-var queue = [];
-var draining = false;
-var currentQueue;
-var queueIndex = -1;
-
-function cleanUpNextTick() {
-    if (!draining || !currentQueue) {
-        return;
-    }
-    draining = false;
-    if (currentQueue.length) {
-        queue = currentQueue.concat(queue);
-    } else {
-        queueIndex = -1;
-    }
-    if (queue.length) {
-        drainQueue();
-    }
-}
-
-function drainQueue() {
-    if (draining) {
-        return;
-    }
-    var timeout = runTimeout(cleanUpNextTick);
-    draining = true;
-
-    var len = queue.length;
-    while(len) {
-        currentQueue = queue;
-        queue = [];
-        while (++queueIndex < len) {
-            if (currentQueue) {
-                currentQueue[queueIndex].run();
-            }
-        }
-        queueIndex = -1;
-        len = queue.length;
-    }
-    currentQueue = null;
-    draining = false;
-    runClearTimeout(timeout);
-}
-
-process.nextTick = function (fun) {
-    var args = new Array(arguments.length - 1);
-    if (arguments.length > 1) {
-        for (var i = 1; i < arguments.length; i++) {
-            args[i - 1] = arguments[i];
-        }
-    }
-    queue.push(new Item(fun, args));
-    if (queue.length === 1 && !draining) {
-        runTimeout(drainQueue);
-    }
-};
-
-// v8 likes predictible objects
-function Item(fun, array) {
-    this.fun = fun;
-    this.array = array;
-}
-Item.prototype.run = function () {
-    this.fun.apply(null, this.array);
-};
-process.title = 'browser';
-process.browser = true;
-process.env = {};
-process.argv = [];
-process.version = ''; // empty string to avoid regexp issues
-process.versions = {};
-
-function noop() {}
-
-process.on = noop;
-process.addListener = noop;
-process.once = noop;
-process.off = noop;
-process.removeListener = noop;
-process.removeAllListeners = noop;
-process.emit = noop;
-process.prependListener = noop;
-process.prependOnceListener = noop;
-
-process.listeners = function (name) { return [] }
-
-process.binding = function (name) {
-    throw new Error('process.binding is not supported');
-};
-
-process.cwd = function () { return '/' };
-process.chdir = function (dir) {
-    throw new Error('process.chdir is not supported');
-};
-process.umask = function() { return 0; };
-
-},{}],358:[function(require,module,exports){
-(function (global){
-/*! https://mths.be/punycode v1.4.1 by @mathias */
-;(function(root) {
-
-	/** Detect free variables */
-	var freeExports = typeof exports == 'object' && exports &&
-		!exports.nodeType && exports;
-	var freeModule = typeof module == 'object' && module &&
-		!module.nodeType && module;
-	var freeGlobal = typeof global == 'object' && global;
-	if (
-		freeGlobal.global === freeGlobal ||
-		freeGlobal.window === freeGlobal ||
-		freeGlobal.self === freeGlobal
-	) {
-		root = freeGlobal;
-	}
-
-	/**
-	 * The `punycode` object.
-	 * @name punycode
-	 * @type Object
-	 */
-	var punycode,
-
-	/** Highest positive signed 32-bit float value */
-	maxInt = 2147483647, // aka. 0x7FFFFFFF or 2^31-1
-
-	/** Bootstring parameters */
-	base = 36,
-	tMin = 1,
-	tMax = 26,
-	skew = 38,
-	damp = 700,
-	initialBias = 72,
-	initialN = 128, // 0x80
-	delimiter = '-', // '\x2D'
-
-	/** Regular expressions */
-	regexPunycode = /^xn--/,
-	regexNonASCII = /[^\x20-\x7E]/, // unprintable ASCII chars + non-ASCII chars
-	regexSeparators = /[\x2E\u3002\uFF0E\uFF61]/g, // RFC 3490 separators
-
-	/** Error messages */
-	errors = {
-		'overflow': 'Overflow: input needs wider integers to process',
-		'not-basic': 'Illegal input >= 0x80 (not a basic code point)',
-		'invalid-input': 'Invalid input'
-	},
-
-	/** Convenience shortcuts */
-	baseMinusTMin = base - tMin,
-	floor = Math.floor,
-	stringFromCharCode = String.fromCharCode,
-
-	/** Temporary variable */
-	key;
-
-	/*--------------------------------------------------------------------------*/
-
-	/**
-	 * A generic error utility function.
-	 * @private
-	 * @param {String} type The error type.
-	 * @returns {Error} Throws a `RangeError` with the applicable error message.
-	 */
-	function error(type) {
-		throw new RangeError(errors[type]);
-	}
-
-	/**
-	 * A generic `Array#map` utility function.
-	 * @private
-	 * @param {Array} array The array to iterate over.
-	 * @param {Function} callback The function that gets called for every array
-	 * item.
-	 * @returns {Array} A new array of values returned by the callback function.
-	 */
-	function map(array, fn) {
-		var length = array.length;
-		var result = [];
-		while (length--) {
-			result[length] = fn(array[length]);
-		}
-		return result;
-	}
-
-	/**
-	 * A simple `Array#map`-like wrapper to work with domain name strings or email
-	 * addresses.
-	 * @private
-	 * @param {String} domain The domain name or email address.
-	 * @param {Function} callback The function that gets called for every
-	 * character.
-	 * @returns {Array} A new string of characters returned by the callback
-	 * function.
-	 */
-	function mapDomain(string, fn) {
-		var parts = string.split('@');
-		var result = '';
-		if (parts.length > 1) {
-			// In email addresses, only the domain name should be punycoded. Leave
-			// the local part (i.e. everything up to `@`) intact.
-			result = parts[0] + '@';
-			string = parts[1];
-		}
-		// Avoid `split(regex)` for IE8 compatibility. See #17.
-		string = string.replace(regexSeparators, '\x2E');
-		var labels = string.split('.');
-		var encoded = map(labels, fn).join('.');
-		return result + encoded;
-	}
-
-	/**
-	 * Creates an array containing the numeric code points of each Unicode
-	 * character in the string. While JavaScript uses UCS-2 internally,
-	 * this function will convert a pair of surrogate halves (each of which
-	 * UCS-2 exposes as separate characters) into a single code point,
-	 * matching UTF-16.
-	 * @see `punycode.ucs2.encode`
-	 * @see <https://mathiasbynens.be/notes/javascript-encoding>
-	 * @memberOf punycode.ucs2
-	 * @name decode
-	 * @param {String} string The Unicode input string (UCS-2).
-	 * @returns {Array} The new array of code points.
-	 */
-	function ucs2decode(string) {
-		var output = [],
-		    counter = 0,
-		    length = string.length,
-		    value,
-		    extra;
-		while (counter < length) {
-			value = string.charCodeAt(counter++);
-			if (value >= 0xD800 && value <= 0xDBFF && counter < length) {
-				// high surrogate, and there is a next character
-				extra = string.charCodeAt(counter++);
-				if ((extra & 0xFC00) == 0xDC00) { // low surrogate
-					output.push(((value & 0x3FF) << 10) + (extra & 0x3FF) + 0x10000);
-				} else {
-					// unmatched surrogate; only append this code unit, in case the next
-					// code unit is the high surrogate of a surrogate pair
-					output.push(value);
-					counter--;
-				}
-			} else {
-				output.push(value);
-			}
-		}
-		return output;
-	}
-
-	/**
-	 * Creates a string based on an array of numeric code points.
-	 * @see `punycode.ucs2.decode`
-	 * @memberOf punycode.ucs2
-	 * @name encode
-	 * @param {Array} codePoints The array of numeric code points.
-	 * @returns {String} The new Unicode string (UCS-2).
-	 */
-	function ucs2encode(array) {
-		return map(array, function(value) {
-			var output = '';
-			if (value > 0xFFFF) {
-				value -= 0x10000;
-				output += stringFromCharCode(value >>> 10 & 0x3FF | 0xD800);
-				value = 0xDC00 | value & 0x3FF;
-			}
-			output += stringFromCharCode(value);
-			return output;
-		}).join('');
-	}
-
-	/**
-	 * Converts a basic code point into a digit/integer.
-	 * @see `digitToBasic()`
-	 * @private
-	 * @param {Number} codePoint The basic numeric code point value.
-	 * @returns {Number} The numeric value of a basic code point (for use in
-	 * representing integers) in the range `0` to `base - 1`, or `base` if
-	 * the code point does not represent a value.
-	 */
-	function basicToDigit(codePoint) {
-		if (codePoint - 48 < 10) {
-			return codePoint - 22;
-		}
-		if (codePoint - 65 < 26) {
-			return codePoint - 65;
-		}
-		if (codePoint - 97 < 26) {
-			return codePoint - 97;
-		}
-		return base;
-	}
-
-	/**
-	 * Converts a digit/integer into a basic code point.
-	 * @see `basicToDigit()`
-	 * @private
-	 * @param {Number} digit The numeric value of a basic code point.
-	 * @returns {Number} The basic code point whose value (when used for
-	 * representing integers) is `digit`, which needs to be in the range
-	 * `0` to `base - 1`. If `flag` is non-zero, the uppercase form is
-	 * used; else, the lowercase form is used. The behavior is undefined
-	 * if `flag` is non-zero and `digit` has no uppercase form.
-	 */
-	function digitToBasic(digit, flag) {
-		//  0..25 map to ASCII a..z or A..Z
-		// 26..35 map to ASCII 0..9
-		return digit + 22 + 75 * (digit < 26) - ((flag != 0) << 5);
-	}
-
-	/**
-	 * Bias adaptation function as per section 3.4 of RFC 3492.
-	 * https://tools.ietf.org/html/rfc3492#section-3.4
-	 * @private
-	 */
-	function adapt(delta, numPoints, firstTime) {
-		var k = 0;
-		delta = firstTime ? floor(delta / damp) : delta >> 1;
-		delta += floor(delta / numPoints);
-		for (/* no initialization */; delta > baseMinusTMin * tMax >> 1; k += base) {
-			delta = floor(delta / baseMinusTMin);
-		}
-		return floor(k + (baseMinusTMin + 1) * delta / (delta + skew));
-	}
-
-	/**
-	 * Converts a Punycode string of ASCII-only symbols to a string of Unicode
-	 * symbols.
-	 * @memberOf punycode
-	 * @param {String} input The Punycode string of ASCII-only symbols.
-	 * @returns {String} The resulting string of Unicode symbols.
-	 */
-	function decode(input) {
-		// Don't use UCS-2
-		var output = [],
-		    inputLength = input.length,
-		    out,
-		    i = 0,
-		    n = initialN,
-		    bias = initialBias,
-		    basic,
-		    j,
-		    index,
-		    oldi,
-		    w,
-		    k,
-		    digit,
-		    t,
-		    /** Cached calculation results */
-		    baseMinusT;
-
-		// Handle the basic code points: let `basic` be the number of input code
-		// points before the last delimiter, or `0` if there is none, then copy
-		// the first basic code points to the output.
-
-		basic = input.lastIndexOf(delimiter);
-		if (basic < 0) {
-			basic = 0;
-		}
-
-		for (j = 0; j < basic; ++j) {
-			// if it's not a basic code point
-			if (input.charCodeAt(j) >= 0x80) {
-				error('not-basic');
-			}
-			output.push(input.charCodeAt(j));
-		}
-
-		// Main decoding loop: start just after the last delimiter if any basic code
-		// points were copied; start at the beginning otherwise.
-
-		for (index = basic > 0 ? basic + 1 : 0; index < inputLength; /* no final expression */) {
-
-			// `index` is the index of the next character to be consumed.
-			// Decode a generalized variable-length integer into `delta`,
-			// which gets added to `i`. The overflow checking is easier
-			// if we increase `i` as we go, then subtract off its starting
-			// value at the end to obtain `delta`.
-			for (oldi = i, w = 1, k = base; /* no condition */; k += base) {
-
-				if (index >= inputLength) {
-					error('invalid-input');
-				}
-
-				digit = basicToDigit(input.charCodeAt(index++));
-
-				if (digit >= base || digit > floor((maxInt - i) / w)) {
-					error('overflow');
-				}
-
-				i += digit * w;
-				t = k <= bias ? tMin : (k >= bias + tMax ? tMax : k - bias);
-
-				if (digit < t) {
-					break;
-				}
-
-				baseMinusT = base - t;
-				if (w > floor(maxInt / baseMinusT)) {
-					error('overflow');
-				}
-
-				w *= baseMinusT;
-
-			}
-
-			out = output.length + 1;
-			bias = adapt(i - oldi, out, oldi == 0);
-
-			// `i` was supposed to wrap around from `out` to `0`,
-			// incrementing `n` each time, so we'll fix that now:
-			if (floor(i / out) > maxInt - n) {
-				error('overflow');
-			}
-
-			n += floor(i / out);
-			i %= out;
-
-			// Insert `n` at position `i` of the output
-			output.splice(i++, 0, n);
-
-		}
-
-		return ucs2encode(output);
-	}
-
-	/**
-	 * Converts a string of Unicode symbols (e.g. a domain name label) to a
-	 * Punycode string of ASCII-only symbols.
-	 * @memberOf punycode
-	 * @param {String} input The string of Unicode symbols.
-	 * @returns {String} The resulting Punycode string of ASCII-only symbols.
-	 */
-	function encode(input) {
-		var n,
-		    delta,
-		    handledCPCount,
-		    basicLength,
-		    bias,
-		    j,
-		    m,
-		    q,
-		    k,
-		    t,
-		    currentValue,
-		    output = [],
-		    /** `inputLength` will hold the number of code points in `input`. */
-		    inputLength,
-		    /** Cached calculation results */
-		    handledCPCountPlusOne,
-		    baseMinusT,
-		    qMinusT;
-
-		// Convert the input in UCS-2 to Unicode
-		input = ucs2decode(input);
-
-		// Cache the length
-		inputLength = input.length;
-
-		// Initialize the state
-		n = initialN;
-		delta = 0;
-		bias = initialBias;
-
-		// Handle the basic code points
-		for (j = 0; j < inputLength; ++j) {
-			currentValue = input[j];
-			if (currentValue < 0x80) {
-				output.push(stringFromCharCode(currentValue));
-			}
-		}
-
-		handledCPCount = basicLength = output.length;
-
-		// `handledCPCount` is the number of code points that have been handled;
-		// `basicLength` is the number of basic code points.
-
-		// Finish the basic string - if it is not empty - with a delimiter
-		if (basicLength) {
-			output.push(delimiter);
-		}
-
-		// Main encoding loop:
-		while (handledCPCount < inputLength) {
-
-			// All non-basic code points < n have been handled already. Find the next
-			// larger one:
-			for (m = maxInt, j = 0; j < inputLength; ++j) {
-				currentValue = input[j];
-				if (currentValue >= n && currentValue < m) {
-					m = currentValue;
-				}
-			}
-
-			// Increase `delta` enough to advance the decoder's <n,i> state to <m,0>,
-			// but guard against overflow
-			handledCPCountPlusOne = handledCPCount + 1;
-			if (m - n > floor((maxInt - delta) / handledCPCountPlusOne)) {
-				error('overflow');
-			}
-
-			delta += (m - n) * handledCPCountPlusOne;
-			n = m;
-
-			for (j = 0; j < inputLength; ++j) {
-				currentValue = input[j];
-
-				if (currentValue < n && ++delta > maxInt) {
-					error('overflow');
-				}
-
-				if (currentValue == n) {
-					// Represent delta as a generalized variable-length integer
-					for (q = delta, k = base; /* no condition */; k += base) {
-						t = k <= bias ? tMin : (k >= bias + tMax ? tMax : k - bias);
-						if (q < t) {
-							break;
-						}
-						qMinusT = q - t;
-						baseMinusT = base - t;
-						output.push(
-							stringFromCharCode(digitToBasic(t + qMinusT % baseMinusT, 0))
-						);
-						q = floor(qMinusT / baseMinusT);
-					}
-
-					output.push(stringFromCharCode(digitToBasic(q, 0)));
-					bias = adapt(delta, handledCPCountPlusOne, handledCPCount == basicLength);
-					delta = 0;
-					++handledCPCount;
-				}
-			}
-
-			++delta;
-			++n;
-
-		}
-		return output.join('');
-	}
-
-	/**
-	 * Converts a Punycode string representing a domain name or an email address
-	 * to Unicode. Only the Punycoded parts of the input will be converted, i.e.
-	 * it doesn't matter if you call it on a string that has already been
-	 * converted to Unicode.
-	 * @memberOf punycode
-	 * @param {String} input The Punycoded domain name or email address to
-	 * convert to Unicode.
-	 * @returns {String} The Unicode representation of the given Punycode
-	 * string.
-	 */
-	function toUnicode(input) {
-		return mapDomain(input, function(string) {
-			return regexPunycode.test(string)
-				? decode(string.slice(4).toLowerCase())
-				: string;
-		});
-	}
-
-	/**
-	 * Converts a Unicode string representing a domain name or an email address to
-	 * Punycode. Only the non-ASCII parts of the domain name will be converted,
-	 * i.e. it doesn't matter if you call it with a domain that's already in
-	 * ASCII.
-	 * @memberOf punycode
-	 * @param {String} input The domain name or email address to convert, as a
-	 * Unicode string.
-	 * @returns {String} The Punycode representation of the given domain name or
-	 * email address.
-	 */
-	function toASCII(input) {
-		return mapDomain(input, function(string) {
-			return regexNonASCII.test(string)
-				? 'xn--' + encode(string)
-				: string;
-		});
-	}
-
-	/*--------------------------------------------------------------------------*/
-
-	/** Define the public API */
-	punycode = {
-		/**
-		 * A string representing the current Punycode.js version number.
-		 * @memberOf punycode
-		 * @type String
-		 */
-		'version': '1.4.1',
-		/**
-		 * An object of methods to convert from JavaScript's internal character
-		 * representation (UCS-2) to Unicode code points, and back.
-		 * @see <https://mathiasbynens.be/notes/javascript-encoding>
-		 * @memberOf punycode
-		 * @type Object
-		 */
-		'ucs2': {
-			'decode': ucs2decode,
-			'encode': ucs2encode
-		},
-		'decode': decode,
-		'encode': encode,
-		'toASCII': toASCII,
-		'toUnicode': toUnicode
-	};
-
-	/** Expose `punycode` */
-	// Some AMD build optimizers, like r.js, check for specific condition patterns
-	// like the following:
-	if (
-		typeof define == 'function' &&
-		typeof define.amd == 'object' &&
-		define.amd
-	) {
-		define('punycode', function() {
-			return punycode;
-		});
-	} else if (freeExports && freeModule) {
-		if (module.exports == freeExports) {
-			// in Node.js, io.js, or RingoJS v0.8.0+
-			freeModule.exports = punycode;
-		} else {
-			// in Narwhal or RingoJS v0.7.0-
-			for (key in punycode) {
-				punycode.hasOwnProperty(key) && (freeExports[key] = punycode[key]);
-			}
-		}
-	} else {
-		// in Rhino or a web browser
-		root.punycode = punycode;
-	}
-
-}(this));
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],359:[function(require,module,exports){
-// Copyright Joyent, Inc. and other Node contributors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to permit
-// persons to whom the Software is furnished to do so, subject to the
-// following conditions:
-//
-// The above copyright notice and this permission notice shall be included
-// in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-// USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-'use strict';
-
-// If obj.hasOwnProperty has been overridden, then calling
-// obj.hasOwnProperty(prop) will break.
-// See: https://github.com/joyent/node/issues/1707
-function hasOwnProperty(obj, prop) {
-  return Object.prototype.hasOwnProperty.call(obj, prop);
-}
-
-module.exports = function(qs, sep, eq, options) {
-  sep = sep || '&';
-  eq = eq || '=';
-  var obj = {};
-
-  if (typeof qs !== 'string' || qs.length === 0) {
-    return obj;
-  }
-
-  var regexp = /\+/g;
-  qs = qs.split(sep);
-
-  var maxKeys = 1000;
-  if (options && typeof options.maxKeys === 'number') {
-    maxKeys = options.maxKeys;
-  }
-
-  var len = qs.length;
-  // maxKeys <= 0 means that we should not limit keys count
-  if (maxKeys > 0 && len > maxKeys) {
-    len = maxKeys;
-  }
-
-  for (var i = 0; i < len; ++i) {
-    var x = qs[i].replace(regexp, '%20'),
-        idx = x.indexOf(eq),
-        kstr, vstr, k, v;
-
-    if (idx >= 0) {
-      kstr = x.substr(0, idx);
-      vstr = x.substr(idx + 1);
-    } else {
-      kstr = x;
-      vstr = '';
-    }
-
-    k = decodeURIComponent(kstr);
-    v = decodeURIComponent(vstr);
-
-    if (!hasOwnProperty(obj, k)) {
-      obj[k] = v;
-    } else if (isArray(obj[k])) {
-      obj[k].push(v);
-    } else {
-      obj[k] = [obj[k], v];
-    }
-  }
-
-  return obj;
-};
-
-var isArray = Array.isArray || function (xs) {
-  return Object.prototype.toString.call(xs) === '[object Array]';
-};
-
-},{}],360:[function(require,module,exports){
-// Copyright Joyent, Inc. and other Node contributors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to permit
-// persons to whom the Software is furnished to do so, subject to the
-// following conditions:
-//
-// The above copyright notice and this permission notice shall be included
-// in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-// USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-'use strict';
-
-var stringifyPrimitive = function(v) {
-  switch (typeof v) {
-    case 'string':
-      return v;
-
-    case 'boolean':
-      return v ? 'true' : 'false';
-
-    case 'number':
-      return isFinite(v) ? v : '';
-
-    default:
-      return '';
-  }
-};
-
-module.exports = function(obj, sep, eq, name) {
-  sep = sep || '&';
-  eq = eq || '=';
-  if (obj === null) {
-    obj = undefined;
-  }
-
-  if (typeof obj === 'object') {
-    return map(objectKeys(obj), function(k) {
-      var ks = encodeURIComponent(stringifyPrimitive(k)) + eq;
-      if (isArray(obj[k])) {
-        return map(obj[k], function(v) {
-          return ks + encodeURIComponent(stringifyPrimitive(v));
-        }).join(sep);
-      } else {
-        return ks + encodeURIComponent(stringifyPrimitive(obj[k]));
-      }
-    }).join(sep);
-
-  }
-
-  if (!name) return '';
-  return encodeURIComponent(stringifyPrimitive(name)) + eq +
-         encodeURIComponent(stringifyPrimitive(obj));
-};
-
-var isArray = Array.isArray || function (xs) {
-  return Object.prototype.toString.call(xs) === '[object Array]';
-};
-
-function map (xs, f) {
-  if (xs.map) return xs.map(f);
-  var res = [];
-  for (var i = 0; i < xs.length; i++) {
-    res.push(f(xs[i], i));
-  }
-  return res;
-}
-
-var objectKeys = Object.keys || function (obj) {
-  var res = [];
-  for (var key in obj) {
-    if (Object.prototype.hasOwnProperty.call(obj, key)) res.push(key);
-  }
-  return res;
-};
-
-},{}],361:[function(require,module,exports){
-'use strict';
-
-exports.decode = exports.parse = require('./decode');
-exports.encode = exports.stringify = require('./encode');
-
-},{"./decode":359,"./encode":360}],362:[function(require,module,exports){
+},{}],356:[function(require,module,exports){
 'use strict'
 
 /**
@@ -55005,7 +53869,7 @@ module.exports = function removeItems(arr, startIdx, removeCount)
   arr.length = len
 }
 
-},{}],363:[function(require,module,exports){
+},{}],357:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -55658,7 +54522,7 @@ var Loader = function () {
 
 exports.default = Loader;
 
-},{"./Resource":364,"./async":365,"mini-signals":185,"parse-uri":187}],364:[function(require,module,exports){
+},{"./Resource":358,"./async":359,"mini-signals":185,"parse-uri":187}],358:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -56814,7 +55678,7 @@ function reqType(xhr) {
     return xhr.toString().replace('object ', '');
 }
 
-},{"mini-signals":185,"parse-uri":187}],365:[function(require,module,exports){
+},{"mini-signals":185,"parse-uri":187}],359:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -57023,7 +55887,7 @@ function queue(worker, concurrency) {
     return q;
 }
 
-},{}],366:[function(require,module,exports){
+},{}],360:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -57091,7 +55955,7 @@ function encodeBinary(input) {
     return output;
 }
 
-},{}],367:[function(require,module,exports){
+},{}],361:[function(require,module,exports){
 'use strict';
 
 // import Loader from './Loader';
@@ -57115,7 +55979,7 @@ module.exports = Loader;
 // export default Loader;
 module.exports.default = Loader;
 
-},{"./Loader":363,"./Resource":364,"./async":365,"./b64":366}],368:[function(require,module,exports){
+},{"./Loader":357,"./Resource":358,"./async":359,"./b64":360}],362:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -57203,1204 +56067,2142 @@ function blobMiddlewareFactory() {
     };
 }
 
-},{"../../Resource":364,"../../b64":366}],369:[function(require,module,exports){
-// TinyColor v1.4.1
-// https://github.com/bgrins/TinyColor
-// Brian Grinstead, MIT License
+},{"../../Resource":358,"../../b64":360}],363:[function(require,module,exports){
+// angle.js <https://github.com/davidfig/anglejs>
+// Released under MIT license <https://github.com/davidfig/angle/blob/master/LICENSE>
+// Author: David Figatner
+// Copyright (c) 2016-17 YOPEY YOPEY LLC
 
-(function(Math) {
+const _toDegreeConversion = 180 / Math.PI
+const _toRadianConversion = Math.PI / 180
 
-var trimLeft = /^\s+/,
-    trimRight = /\s+$/,
-    tinyCounter = 0,
-    mathRound = Math.round,
-    mathMin = Math.min,
-    mathMax = Math.max,
-    mathRandom = Math.random;
 
-function tinycolor (color, opts) {
+/** @constant {number} */
+const UP = Math.PI / 2
+const DOWN = 3 * Math.PI / 2
+const LEFT = Math.PI
+const RIGHT = 0
 
-    color = (color) ? color : '';
-    opts = opts || { };
+const NORTH = UP
+const SOUTH = DOWN
+const WEST = LEFT
+const EAST = RIGHT
 
-    // If input is already a tinycolor, return itself
-    if (color instanceof tinycolor) {
-       return color;
-    }
-    // If we are called as a function, call using new instead
-    if (!(this instanceof tinycolor)) {
-        return new tinycolor(color, opts);
-    }
+const PI_2 = Math.PI * 2
+const PI_QUARTER = Math.PI / 4
+const PI_HALF = Math.PI / 2
 
-    var rgb = inputToRGB(color);
-    this._originalInput = color,
-    this._r = rgb.r,
-    this._g = rgb.g,
-    this._b = rgb.b,
-    this._a = rgb.a,
-    this._roundA = mathRound(100*this._a) / 100,
-    this._format = opts.format || rgb.format;
-    this._gradientType = opts.gradientType;
-
-    // Don't let the range of [0,255] come back in [0,1].
-    // Potentially lose a little bit of precision here, but will fix issues where
-    // .5 gets interpreted as half of the total, instead of half of 1
-    // If it was supposed to be 128, this was already taken care of by `inputToRgb`
-    if (this._r < 1) { this._r = mathRound(this._r); }
-    if (this._g < 1) { this._g = mathRound(this._g); }
-    if (this._b < 1) { this._b = mathRound(this._b); }
-
-    this._ok = rgb.ok;
-    this._tc_id = tinyCounter++;
+/**
+ * converts from radians to degrees (all other functions expect radians)
+ * @param {number} radians
+ * @return {number} degrees
+ */
+function toDegrees(radians)
+{
+    return radians * _toDegreeConversion
 }
 
-tinycolor.prototype = {
-    isDark: function() {
-        return this.getBrightness() < 128;
-    },
-    isLight: function() {
-        return !this.isDark();
-    },
-    isValid: function() {
-        return this._ok;
-    },
-    getOriginalInput: function() {
-      return this._originalInput;
-    },
-    getFormat: function() {
-        return this._format;
-    },
-    getAlpha: function() {
-        return this._a;
-    },
-    getBrightness: function() {
-        //http://www.w3.org/TR/AERT#color-contrast
-        var rgb = this.toRgb();
-        return (rgb.r * 299 + rgb.g * 587 + rgb.b * 114) / 1000;
-    },
-    getLuminance: function() {
-        //http://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef
-        var rgb = this.toRgb();
-        var RsRGB, GsRGB, BsRGB, R, G, B;
-        RsRGB = rgb.r/255;
-        GsRGB = rgb.g/255;
-        BsRGB = rgb.b/255;
+/**
+ * converts from degrees to radians (all other functions expect radians)
+ * @param {number} degrees
+ * @return {number} radians
+ */
+function toRadians(degrees)
+{
+    return degrees * _toRadianConversion
+}
 
-        if (RsRGB <= 0.03928) {R = RsRGB / 12.92;} else {R = Math.pow(((RsRGB + 0.055) / 1.055), 2.4);}
-        if (GsRGB <= 0.03928) {G = GsRGB / 12.92;} else {G = Math.pow(((GsRGB + 0.055) / 1.055), 2.4);}
-        if (BsRGB <= 0.03928) {B = BsRGB / 12.92;} else {B = Math.pow(((BsRGB + 0.055) / 1.055), 2.4);}
-        return (0.2126 * R) + (0.7152 * G) + (0.0722 * B);
-    },
-    setAlpha: function(value) {
-        this._a = boundAlpha(value);
-        this._roundA = mathRound(100*this._a) / 100;
-        return this;
-    },
-    toHsv: function() {
-        var hsv = rgbToHsv(this._r, this._g, this._b);
-        return { h: hsv.h * 360, s: hsv.s, v: hsv.v, a: this._a };
-    },
-    toHsvString: function() {
-        var hsv = rgbToHsv(this._r, this._g, this._b);
-        var h = mathRound(hsv.h * 360), s = mathRound(hsv.s * 100), v = mathRound(hsv.v * 100);
-        return (this._a == 1) ?
-          "hsv("  + h + ", " + s + "%, " + v + "%)" :
-          "hsva(" + h + ", " + s + "%, " + v + "%, "+ this._roundA + ")";
-    },
-    toHsl: function() {
-        var hsl = rgbToHsl(this._r, this._g, this._b);
-        return { h: hsl.h * 360, s: hsl.s, l: hsl.l, a: this._a };
-    },
-    toHslString: function() {
-        var hsl = rgbToHsl(this._r, this._g, this._b);
-        var h = mathRound(hsl.h * 360), s = mathRound(hsl.s * 100), l = mathRound(hsl.l * 100);
-        return (this._a == 1) ?
-          "hsl("  + h + ", " + s + "%, " + l + "%)" :
-          "hsla(" + h + ", " + s + "%, " + l + "%, "+ this._roundA + ")";
-    },
-    toHex: function(allow3Char) {
-        return rgbToHex(this._r, this._g, this._b, allow3Char);
-    },
-    toHexString: function(allow3Char) {
-        return '#' + this.toHex(allow3Char);
-    },
-    toHex8: function(allow4Char) {
-        return rgbaToHex(this._r, this._g, this._b, this._a, allow4Char);
-    },
-    toHex8String: function(allow4Char) {
-        return '#' + this.toHex8(allow4Char);
-    },
-    toRgb: function() {
-        return { r: mathRound(this._r), g: mathRound(this._g), b: mathRound(this._b), a: this._a };
-    },
-    toRgbString: function() {
-        return (this._a == 1) ?
-          "rgb("  + mathRound(this._r) + ", " + mathRound(this._g) + ", " + mathRound(this._b) + ")" :
-          "rgba(" + mathRound(this._r) + ", " + mathRound(this._g) + ", " + mathRound(this._b) + ", " + this._roundA + ")";
-    },
-    toPercentageRgb: function() {
-        return { r: mathRound(bound01(this._r, 255) * 100) + "%", g: mathRound(bound01(this._g, 255) * 100) + "%", b: mathRound(bound01(this._b, 255) * 100) + "%", a: this._a };
-    },
-    toPercentageRgbString: function() {
-        return (this._a == 1) ?
-          "rgb("  + mathRound(bound01(this._r, 255) * 100) + "%, " + mathRound(bound01(this._g, 255) * 100) + "%, " + mathRound(bound01(this._b, 255) * 100) + "%)" :
-          "rgba(" + mathRound(bound01(this._r, 255) * 100) + "%, " + mathRound(bound01(this._g, 255) * 100) + "%, " + mathRound(bound01(this._b, 255) * 100) + "%, " + this._roundA + ")";
-    },
-    toName: function() {
-        if (this._a === 0) {
-            return "transparent";
+/**
+ * returns whether the target angle is between angle1 and angle2 (in radians)
+ * (based on: http://stackoverflow.com/questions/11406189/determine-if-angle-lies-between-2-other-angles)
+ * @param {number} target angle
+ * @param {number} angle1
+ * @param {number} angle2
+ * @return {boolean}
+ */
+function isAngleBetween(target, angle1, angle2)
+{
+    const rAngle = ((angle2 - angle1) % PI_2 + PI_2) % PI_2
+    if (rAngle >= Math.PI)
+    {
+        const swap = angle1
+        angle1 = angle2
+        angle2 = swap
+    }
+
+    if (angle1 <= angle2)
+    {
+        return target >= angle1 && target <= angle2
+    }
+    else
+    {
+        return target >= angle1 || target <= angle2
+    }
+}
+
+/**
+ * returns +1 or -1 based on whether the difference between two angles is positive or negative (in radians)
+ * @param {number} target angle
+ * @param {number} source angle
+ * @return {number} 1 or -1
+ */
+function differenceAnglesSign(target, source)
+{
+    function mod(a, n)
+    {
+        return (a % n + n) % n
+    }
+
+    const a = target - source
+    return mod((a + Math.PI), PI_2) - Math.PI > 0 ? 1 : -1
+}
+
+/**
+ * returns the normalized difference between two angles (in radians)
+ * @param {number} a - first angle
+ * @param {number} b - second angle
+ * @return {number} normalized difference between a and b
+ */
+function differenceAngles(a, b)
+{
+    const c = Math.abs(a - b) % PI_2
+    return c > Math.PI ? (PI_2 - c) : c
+}
+
+/**
+ * returns a target angle that is the shortest way to rotate an object between start and to--may choose a negative angle
+ * @param {number} start
+ * @param {number} to
+ * @return {number} shortest target angle
+ */
+function shortestAngle(start, to)
+{
+    const difference = differenceAngles(to, start)
+    const sign = differenceAnglesSign(to, start)
+    const delta = difference * sign
+    return delta + start
+}
+
+/**
+ * returns the normalized angle (0 - PI x 2)
+ * @param {number} radians
+ * @return {number} normalized angle in radians
+ */
+function normalize(radians)
+{
+    return radians - PI_2 * Math.floor(radians / PI_2)
+}
+
+/**
+ * returns angle between two points (in radians)
+ * @param {Point} [point1] {x: x, y: y}
+ * @param {Point} [point2] {x: x, y: y}
+ * @param {number} [x1]
+ * @param {number} [y1]
+ * @param {number} [x2]
+ * @param {number} [y2]
+ * @return {number} angle
+ */
+function angleTwoPoints(/* (point1, point2) OR (x1, y1, x2, y2) */)
+{
+    if (arguments.length === 4)
+    {
+        return Math.atan2(arguments[3] - arguments[1], arguments[2] - arguments[0])
+    }
+    else
+    {
+        return Math.atan2(arguments[1].y - arguments[0].y, arguments[1].x - arguments[0].x)
+    }
+}
+
+/**
+ * returns distance between two points
+ * @param {Point} [point1] {x: x, y: y}
+ * @param {Point} [point2] {x: x, y: y}
+ * @param {number} [x1]
+ * @param {number} [y1]
+ * @param {number} [x2]
+ * @param {number} [y2]
+ * @return {number} distance
+ */
+function distanceTwoPoints(/* (point1, point2) OR (x1, y1, x2, y2) */)
+{
+    if (arguments.length === 2)
+    {
+        return Math.sqrt(Math.pow(arguments[1].x - arguments[0].x, 2) + Math.pow(arguments[1].y - arguments[0].y, 2))
+    }
+    else
+    {
+        return Math.sqrt(Math.pow(arguments[2] - arguments[0], 2) + Math.pow(arguments[3] - arguments[1], 2))
+    }
+}
+
+/**
+ * returns the squared distance between two points
+ * @param {Point} [point1] {x: x, y: y}
+ * @param {Point} [point2] {x: x, y: y}
+ * @param {number} [x1]
+ * @param {number} [y1]
+ * @param {number} [x2]
+ * @param {number} [y2]
+ * @return {number} squared distance
+ */
+function distanceTwoPointsSquared(/* (point1, point2) OR (x1, y1, x2, y2) */)
+{
+    if (arguments.length === 2)
+    {
+        return Math.pow(arguments[1].x - arguments[0].x, 2) + Math.pow(arguments[1].y - arguments[0].y, 2)
+    }
+    else
+    {
+        return Math.pow(arguments[2] - arguments[0], 2) + Math.pow(arguments[3] - arguments[1], 2)
+    }
+}
+
+/**
+ * returns the closest cardinal (N, S, E, W) to the given angle (in radians)
+ * @param {number} angle
+ * @return {number} closest cardinal in radians
+ */
+function closestAngle(angle)
+{
+    const left = differenceAngles(angle, LEFT)
+    const right = differenceAngles(angle, RIGHT)
+    const up = differenceAngles(angle, UP)
+    const down = differenceAngles(angle, DOWN)
+    if (left <= right && left <= up && left <= down)
+    {
+        return LEFT
+    }
+    else if (right <= up && right <= down)
+    {
+        return RIGHT
+    }
+    else if (up <= down)
+    {
+        return UP
+    }
+    else
+    {
+        return DOWN
+    }
+}
+
+/**
+ * checks whether angles a1 and a2 are equal (after normalizing)
+ * @param {number} a1
+ * @param {number} a2
+ * @param {number} [wiggle] return true if the difference between the angles is <= wiggle
+ * @return {boolean} a1 === a2
+ */
+function equals(a1, a2, wiggle)
+{
+    if (wiggle)
+    {
+        return differenceAngles(a1, a2) < wiggle
+    }
+    else
+    {
+        return normalize(a1) === normalize(a2)
+    }
+}
+
+/**
+ * return a text representation of the cardinal direction
+ * @param {number} angle
+ * @returns {string} UP, DOWN, LEFT, RIGHT, or NOT CARDINAL
+ */
+function explain(angle)
+{
+    switch (angle)
+    {
+        case UP: return 'UP'
+        case DOWN: return 'DOWN'
+        case LEFT: return 'LEFT'
+        case RIGHT: return 'RIGHT'
+        default: return 'NOT CARDINAL'
+    }
+}
+
+module.exports = {
+    UP, DOWN, LEFT, RIGHT,
+    NORTH, SOUTH, WEST, EAST,
+    PI_2, PI_QUARTER, PI_HALF,
+
+    toDegrees,
+    toRadians,
+    isAngleBetween,
+    differenceAnglesSign,
+    differenceAngles,
+    shortestAngle,
+    normalize,
+    angleTwoPoints,
+    distanceTwoPoints,
+    distanceTwoPointsSquared,
+    closestAngle,
+    equals,
+    explain
+}
+},{}],364:[function(require,module,exports){
+const PIXI = require('pixi.js')
+const Angle = require('yy-angle')
+
+/**
+ * pixi-pixelate: a container to create proper pixelated graphics
+ */
+class Pixelate extends PIXI.Container
+{
+    constructor()
+    {
+        super()
+        this.cursor = { x: 0, y: 0 }
+        this.tint = 0xffffff
+        this._lineStyle = { width: 1, tint: 0xffffff, alpha: 1, direction: 'up' }
+        this.cache = []
+    }
+
+    /**
+     * clear all graphics
+     */
+    clear()
+    {
+        while (this.children.length)
+        {
+            this.cache.push(this.children.pop())
         }
+    }
 
-        if (this._a < 1) {
-            return false;
+    /**
+     * texture to use for sprites (defaults to PIXI.Texture.WHITE)
+     * @type {PIXI.Texture}
+     */
+    static get texture()
+    {
+        return Pixelate._texture
+    }
+    static set texture(value)
+    {
+        Pixelate._texture = value
+    }
+
+    /**
+     * creates or gets an old sprite
+     * @param {number} tint
+     * @param {number} alpha
+     * @private
+     */
+    getPoint(tint, alpha)
+    {
+        let point
+        if (this.cache.length)
+        {
+            point = this.addChild(this.cache.pop())
         }
-
-        return hexNames[rgbToHex(this._r, this._g, this._b, true)] || false;
-    },
-    toFilter: function(secondColor) {
-        var hex8String = '#' + rgbaToArgbHex(this._r, this._g, this._b, this._a);
-        var secondHex8String = hex8String;
-        var gradientType = this._gradientType ? "GradientType = 1, " : "";
-
-        if (secondColor) {
-            var s = tinycolor(secondColor);
-            secondHex8String = '#' + rgbaToArgbHex(s._r, s._g, s._b, s._a);
+        else
+        {
+            point = this.addChild(new PIXI.Sprite(Pixelate.texture))
         }
+        point.tint = typeof tint === 'undefined' ? this._lineStyle.tint : tint
+        point.alpha = typeof alpha === 'undefined' ? this._lineStyle.alpha : alpha
+        return point
+    }
 
-        return "progid:DXImageTransform.Microsoft.gradient("+gradientType+"startColorstr="+hex8String+",endColorstr="+secondHex8String+")";
-    },
-    toString: function(format) {
-        var formatSet = !!format;
-        format = format || this._format;
-
-        var formattedString = false;
-        var hasAlpha = this._a < 1 && this._a >= 0;
-        var needsAlphaFormat = !formatSet && hasAlpha && (format === "hex" || format === "hex6" || format === "hex3" || format === "hex4" || format === "hex8" || format === "name");
-
-        if (needsAlphaFormat) {
-            // Special case for "transparent", all other non-alpha formats
-            // will return rgba when there is transparency.
-            if (format === "name" && this._a === 0) {
-                return this.toName();
+    /**
+     * draw a list of points
+     * @param {(number[]|PIXI.Point[]|PIXI.PointLike[])} points
+     * @param {number} tint
+     * @param {number} alpha
+     */
+    points(points, tint, alpha)
+    {
+        if (isNaN(points[0]))
+        {
+            for (let point of points)
+            {
+                this.point(point.x, point.y, tint, alpha)
             }
-            return this.toRgbString();
         }
-        if (format === "rgb") {
-            formattedString = this.toRgbString();
+        else
+        {
+            for (let i = 0; i < points.length; i += 2)
+            {
+                this.point(points[i], points[i + 1], tint, alpha)
+            }
         }
-        if (format === "prgb") {
-            formattedString = this.toPercentageRgbString();
-        }
-        if (format === "hex" || format === "hex6") {
-            formattedString = this.toHexString();
-        }
-        if (format === "hex3") {
-            formattedString = this.toHexString(true);
-        }
-        if (format === "hex4") {
-            formattedString = this.toHex8String(true);
-        }
-        if (format === "hex8") {
-            formattedString = this.toHex8String();
-        }
-        if (format === "name") {
-            formattedString = this.toName();
-        }
-        if (format === "hsl") {
-            formattedString = this.toHslString();
-        }
-        if (format === "hsv") {
-            formattedString = this.toHsvString();
-        }
-
-        return formattedString || this.toHexString();
-    },
-    clone: function() {
-        return tinycolor(this.toString());
-    },
-
-    _applyModification: function(fn, args) {
-        var color = fn.apply(null, [this].concat([].slice.call(args)));
-        this._r = color._r;
-        this._g = color._g;
-        this._b = color._b;
-        this.setAlpha(color._a);
-        return this;
-    },
-    lighten: function() {
-        return this._applyModification(lighten, arguments);
-    },
-    brighten: function() {
-        return this._applyModification(brighten, arguments);
-    },
-    darken: function() {
-        return this._applyModification(darken, arguments);
-    },
-    desaturate: function() {
-        return this._applyModification(desaturate, arguments);
-    },
-    saturate: function() {
-        return this._applyModification(saturate, arguments);
-    },
-    greyscale: function() {
-        return this._applyModification(greyscale, arguments);
-    },
-    spin: function() {
-        return this._applyModification(spin, arguments);
-    },
-
-    _applyCombination: function(fn, args) {
-        return fn.apply(null, [this].concat([].slice.call(args)));
-    },
-    analogous: function() {
-        return this._applyCombination(analogous, arguments);
-    },
-    complement: function() {
-        return this._applyCombination(complement, arguments);
-    },
-    monochromatic: function() {
-        return this._applyCombination(monochromatic, arguments);
-    },
-    splitcomplement: function() {
-        return this._applyCombination(splitcomplement, arguments);
-    },
-    triad: function() {
-        return this._applyCombination(triad, arguments);
-    },
-    tetrad: function() {
-        return this._applyCombination(tetrad, arguments);
     }
-};
 
-// If input is an object, force 1 into "1.0" to handle ratios properly
-// String input requires "1.0" as input, so 1 will be treated as 1
-tinycolor.fromRatio = function(color, opts) {
-    if (typeof color == "object") {
-        var newColor = {};
-        for (var i in color) {
-            if (color.hasOwnProperty(i)) {
-                if (i === "a") {
-                    newColor[i] = color[i];
+    /**
+     * add a point using lineStyle or provided tint and alpha
+     * @param {number} x
+     * @param {number} y
+     * @param {number} [tint]
+     * @param {number} [alpha]
+     * @returns {Pixelate}
+     */
+    point(x, y, tint, alpha)
+    {
+        const point = this.getPoint(tint, alpha)
+        point.position.set(x, y)
+        point.width = point.height = 1
+        return this
+    }
+
+    /**
+     * if lineStyle.width > 1 then use this direction to place the next line; center=alternate up and down
+     * @typedef {string} LineDirection (up, center, down)
+     */
+
+    /**
+     * set linestyle for pixelated layer
+     * NOTE: width only works for line() for now
+     * @param {number} width
+     * @param {number} [tint=0xffffff]
+     * @param {number} [alpha=1]
+     * @param {LineDirection} [direction=up] (up, center, down)
+     * @returns {Pixelate}
+     */
+    lineStyle(width, tint, alpha, direction)
+    {
+        this._lineStyle.width = width
+        this._lineStyle.tint = typeof tint !== 'undefined' ? tint : 0xffffff
+        this._lineStyle.alpha = typeof alpha !== 'undefined' ? alpha : 1
+        this._lineStyle.direction = direction || 'up'
+        return this
+    }
+
+    /**
+     * move cursor to this location
+     * @param {number} x
+     * @param {number} y
+     * @returns {Pixelate}
+     */
+    moveTo(x, y)
+    {
+        this.cursor.x = x
+        this.cursor.y = y
+        return this
+    }
+
+    /**
+     * draw a pixelated line between two points and move cursor to the second point
+     * @param {number} x0
+     * @param {number} y0
+     * @param {number} x1
+     * @param {number} y1
+     * @param {number} [tint]
+     * @param {number} [alpha]
+     * @param {number} [lineWidth]
+     * @param {LineDirection} [lineDirection]
+     * @returns {Pixelate}
+     */
+    line(x0, y0, x1, y1, tint, alpha, lineWidth, lineDirection)
+    {
+        lineWidth = typeof lineWidth === 'undefined' ? this._lineStyle.width : lineWidth
+        lineDirection = lineDirection || this._lineStyle.direction
+        if (lineWidth === 1)
+        {
+            this.drawPoints(this.linePoints(x0, y0, x1, y1), tint, alpha)
+        }
+        else
+        {
+            const points = this.linePoints(x0, y0, x1, y1)
+            const angle = Angle.angleTwoPoints(x0, y0, x1, y1) + Math.PI / 2 * (lineDirection === 'up' ? -1 : 1)
+            const cos = Math.cos(angle)
+            const sin = Math.sin(angle)
+            if (lineDirection === 'center')
+            {
+                for (let i = 0; i < lineWidth - 1; i++)
+                {
+                    if (i % 2)
+                    {
+                        const index = i / 2 + 1
+                        this.linePoints(Math.round(x0 + cos * index), Math.round(y0 + sin * index), Math.round(x1 + cos * index), Math.round(y1 + sin * index), points)
+                    }
+                    else
+                    {
+                        const index = Math.floor(i / 2) + 1
+                        this.linePoints(Math.round(x0 - cos * index), Math.round(y0 - sin * index), Math.round(x1 + cos * index), Math.round(y1 - sin * index), points)
+                    }
                 }
-                else {
-                    newColor[i] = convertToPercentage(color[i]);
+            }
+            else
+            {
+                for (let i = 0; i < lineWidth; i++)
+                {
+                    this.linePoints(Math.round(x0 + cos * i), Math.round(y0 + sin * i), Math.round(x1 + cos * i), Math.round(y1 + sin * i), points)
+                }
+            }
+
+            this.drawPoints(points, tint, alpha)
+        }
+        return this
+    }
+
+    /**
+     * draw a pixelated line between two points and move cursor to the second point
+     * based on https://github.com/madbence/node-bresenham/blob/master/index.js
+     * @private
+     * @param {number} x0
+     * @param {number} y0
+     * @param {number} x1
+     * @param {number} y1
+     * @param {number[]} [points]
+     * @returns {number[]}
+     */
+    linePoints(x0, y0, x1, y1, points)
+    {
+        points = points || []
+        points.push([x0, y0])
+        var dx = x1 - x0;
+        var dy = y1 - y0;
+        var adx = Math.abs(dx);
+        var ady = Math.abs(dy);
+        var eps = 0;
+        var sx = dx > 0 ? 1 : -1;
+        var sy = dy > 0 ? 1 : -1;
+        if (adx > ady)
+        {
+            for (var x = x0, y = y0; sx < 0 ? x >= x1 : x <= x1; x += sx)
+            {
+                points.push([x, y])
+                eps += ady;
+                if ((eps << 1) >= adx)
+                {
+                    y += sy;
+                    eps -= adx;
+                }
+            }
+        } else
+        {
+            for (var x = x0, y = y0; sy < 0 ? y >= y1 : y <= y1; y += sy)
+            {
+                points.push([x, y])
+                eps += adx;
+                if ((eps << 1) >= ady)
+                {
+                    x += sx;
+                    eps -= ady;
                 }
             }
         }
-        color = newColor;
+        return points
     }
 
-    return tinycolor(color, opts);
-};
+    /**
+     * create a unique array
+     * from https://stackoverflow.com/a/9229821/1955997
+     * @private
+     * @param {Array} a
+     */
+    hashUnique(a)
+    {
+        const seen = {}
+        return a.filter((item) =>
+        {
+            const key = item[0] + '.' + item[1]
+            return seen.hasOwnProperty(key) ? false : (seen[key] = true)
+        })
+    }
 
-// Given a string or object, convert that input to RGB
-// Possible string inputs:
+    /**
+     * draw a set of points, removing duplicates first
+     * @private
+     * @param {object[]}
+     */
+    drawPoints(points, tint, alpha)
+    {
+        points = this.hashUnique(points)
+        for (let point of points)
+        {
+            this.point(point[0], point[1], tint, alpha)
+        }
+    }
+
+    /**
+     * draw a pixelated line from the cursor position to this position
+     * @param {number} x
+     * @param {number} y
+     * @returns {Pixelate}
+     */
+    lineTo(x, y)
+    {
+        this.drawPoints(this.linePoints(this.cursor.x, this.cursor.y, x, y))
+        this.cursor.x = x
+        this.cursor.y = y
+        return this
+    }
+
+    /**
+     * draw a pixelated circle
+     * from https://en.wikipedia.org/wiki/Midpoint_circle_algorithm
+     * @param {number} x0
+     * @param {number} y0
+     * @param {number} radius
+     * @param {number} [tint]
+     * @param {number} [alpha]
+     * @returns {Pixelate}
+     */
+    circle(x0, y0, radius, tint, alpha)
+    {
+        const points = []
+        let x = radius
+        let y = 0
+        let decisionOver2 = 1 - x   // Decision criterion divided by 2 evaluated at x=r, y=0
+
+        while (x >= y)
+        {
+            points.push([x + x0, y + y0])
+            points.push([y + x0, x + y0])
+            points.push([-x + x0, y + y0])
+            points.push([-y + x0, x + y0])
+            points.push([-x + x0, -y + y0])
+            points.push([-y + x0, -x + y0])
+            points.push([x + x0, -y + y0])
+            points.push([y + x0, -x + y0])
+            y++
+            if (decisionOver2 <= 0)
+            {
+                decisionOver2 += 2 * y + 1 // Change in decision criterion for y -> y+1
+            } else
+            {
+                x--
+                decisionOver2 += 2 * (y - x) + 1 // Change for y -> y+1, x -> x-1
+            }
+        }
+        this.drawPoints(points, tint, alpha)
+        return this
+    }
+
+    /**
+     * draw and fill circle
+     * @param {number} x center
+     * @param {number} y center
+     * @param {number} radius
+     * @param {number} tint
+     * @param {number} alpha
+     */
+    circleFill(x0, y0, radius, tint, alpha)
+    {
+        const points = []
+        let x = radius
+        let y = 0
+        let decisionOver2 = 1 - x   // Decision criterion divided by 2 evaluated at x=r, y=0
+
+        while (x >= y)
+        {
+            this.rectPoints(-x + x0, y + y0, x * 2 + 1, 1, points)
+            this.rectPoints(-y + x0, x + y0, y * 2 + 1, 1, points)
+            this.rectPoints(-x + x0, -y + y0, x * 2 + 1, 1, points)
+            this.rectPoints(-y + x0, -x + y0, y * 2 + 1, 1, points)
+            y++
+            if (decisionOver2 <= 0)
+            {
+                decisionOver2 += 2 * y + 1 // Change in decision criterion for y -> y+1
+            } else
+            {
+                x--
+                decisionOver2 += 2 * (y - x) + 1 // Change for y -> y+1, x -> x-1
+            }
+        }
+
+        this.drawPoints(points, tint, alpha)
+        return this
+    }
+
+    /**
+     * return an array of points for a rect
+     * @private
+     * @param {number} x0
+     * @param {number} y0
+     * @param {number} width
+     * @param {number} height
+     * @param {number[]} [points]
+     * @returns {object[]}
+     */
+    rectPoints(x0, y0, width, height, points)
+    {
+        points = points || []
+        for (let y = y0; y < y0 + height; y++)
+        {
+            for (let x = x0; x < x0 + width; x++)
+            {
+                points.push([x, y])
+            }
+        }
+        return points
+    }
+
+    /**
+     * draw the outline of a rect
+     * @param {number} x
+     * @param {number} y
+     * @param {number} width
+     * @param {number} height
+     * @param {number} tint
+     * @param {number} alpha
+     * @return {Pixelate}
+     */
+    rect(x, y, width, height, tint, alpha)
+    {
+        if (width === 1)
+        {
+            const point = this.getPoint(tint, alpha)
+            point.position.set(x, y)
+            point.width = 1
+            point.height = height
+        }
+        else if (height === 1)
+        {
+            const point = this.getPoint(tint, alpha)
+            point.position.set(x, y)
+            point.width = 1
+            point.height = 1
+        }
+        else
+        {
+            const top = this.getPoint(tint, alpha)
+            top.position.set(x, y)
+            top.width = width + 1
+            top.height = 1
+            const bottom = this.getPoint(tint, alpha)
+            bottom.position.set(x, y + height)
+            bottom.width = width + 1
+            bottom.height = 1
+            const left = this.getPoint(tint, alpha)
+            left.position.set(x, y + 1)
+            left.width = 1
+            left.height = height - 1
+            const right = this.getPoint(tint, alpha)
+            right.position.set(x + width, y + 1)
+            right.width = 1
+            right.height = height - 1
+        }
+        return this
+    }
+
+    /**
+     * draw and fill rectangle
+     * @param {number} x
+     * @param {number} y
+     * @param {number} width
+     * @param {number} height
+     * @param {number} [tint]
+     * @param {number} [alpha]
+     * @returns {Pixelate}
+     */
+    rectFill(x, y, width, height, tint, alpha)
+    {
+        const point = this.getPoint(tint, alpha)
+        point.position.set(x, y)
+        point.width = width + 1
+        point.height = height + 1
+        return this
+    }
+
+    /**
+     * draw a pixelated ellipse
+     * from http://cfetch.blogspot.tw/2014/01/wap-to-draw-ellipse-using-midpoint.html
+     * @param {number} xc center
+     * @param {number} yc center
+     * @param {number} rx - radius x-axis
+     * @param {number} ry - radius y-axis
+     * @param {number} tint
+     * @param {number} alpha
+     * @returns {Pixelate}
+     */
+    ellipse(xc, yc, rx, ry, tint, alpha)
+    {
+        const points = []
+        let x = 0, y = ry
+        let p = (ry * ry) - (rx * rx * ry) + ((rx * rx) / 4)
+        while ((2 * x * ry * ry) < (2 * y * rx * rx))
+        {
+            points.push([xc + x, yc - y])
+            points.push([xc - x, yc + y])
+            points.push([xc + x, yc + y])
+            points.push([xc - x, yc - y])
+
+            if (p < 0)
+            {
+                x = x + 1
+                p = p + (2 * ry * ry * x) + (ry * ry)
+            }
+            else
+            {
+                x = x + 1
+                y = y - 1
+                p = p + (2 * ry * ry * x + ry * ry) - (2 * rx * rx * y)
+            }
+        }
+        p = (x + 0.5) * (x + 0.5) * ry * ry + (y - 1) * (y - 1) * rx * rx - rx * rx * ry * ry
+        while (y >= 0)
+        {
+            points.push([xc + x, yc - y])
+            points.push([xc - x, yc + y])
+            points.push([xc + x, yc + y])
+            points.push([xc - x, yc - y])
+            if (p > 0)
+            {
+                y = y - 1
+                p = p - (2 * rx * rx * y) + (rx * rx)
+            }
+            else
+            {
+                y = y - 1
+                x = x + 1
+                p = p + (2 * ry * ry * x) - (2 * rx * rx * y) - (rx * rx)
+            }
+        }
+        this.drawPoints(points, tint, alpha)
+        return this
+    }
+
+    /**
+     * draw and fill ellipse
+     * @param {number} xc - x-center
+     * @param {number} yc - y-center
+     * @param {number} rx - radius x-axis
+     * @param {number} ry - radius y-axis
+     * @param {number} tint
+     * @returns {Pixelate}
+     */
+    ellipseFill(xc, yc, rx, ry, tint, alpha)
+    {
+        const points = []
+        let x = 0, y = ry
+        let p = (ry * ry) - (rx * rx * ry) + ((rx * rx) / 4)
+        while ((2 * x * ry * ry) < (2 * y * rx * rx))
+        {
+            this.rectPoints(xc - x, yc - y, x * 2 + 1, 1, points)
+            this.rectPoints(xc - x, yc + y, x * 2 + 1, 1, points)
+            if (p < 0)
+            {
+                x = x + 1
+                p = p + (2 * ry * ry * x) + (ry * ry)
+            }
+            else
+            {
+                x = x + 1
+                y = y - 1
+                p = p + (2 * ry * ry * x + ry * ry) - (2 * rx * rx * y)
+            }
+        }
+        p = (x + 0.5) * (x + 0.5) * ry * ry + (y - 1) * (y - 1) * rx * rx - rx * rx * ry * ry
+        while (y >= 0)
+        {
+            this.rectPoints(xc - x, yc - y, x * 2 + 1, 1, points)
+            this.rectPoints(xc - x, yc + y, x * 2 + 1, 1, points)
+            if (p > 0)
+            {
+                y = y - 1
+                p = p - (2 * rx * rx * y) + (rx * rx)
+            }
+            else
+            {
+                y = y - 1
+                x = x + 1
+                p = p + (2 * ry * ry * x) - (2 * rx * rx * y) - (rx * rx)
+            }
+        }
+        this.drawPoints(points, tint, alpha)
+        return this
+    }
+
+    /**
+     * draw a pixelated polygon
+     * @param {number[]} vertices
+     * @param {number} tint
+     * @param {number} alpha
+     * @returns {Pixelate}
+     */
+    polygon(vertices, tint, alpha)
+    {
+        const points = []
+        for (let i = 2; i < vertices.length; i += 2)
+        {
+            this.linePoints(vertices[i - 2], vertices[i - 1], vertices[i], vertices[i + 1], points)
+        }
+        if (vertices[vertices.length - 2] !== vertices[0] || vertices[vertices.length - 1] !== vertices[1])
+        {
+            this.linePoints(vertices[vertices.length - 2], vertices[vertices.length - 1], vertices[0], vertices[1], points)
+        }
+        this.drawPoints(points, tint, alpha)
+    }
+
+    /**
+     * draw and fill pixelated polygon
+     * @param {number[]} vertices
+     * @param {number} tint
+     * @param {number} alpha
+     * @returns {Pixelate}
+     */
+    polygonFill(vertices, tint, alpha)
+    {
+        function mod(n, m)
+        {
+            return ((n % m) + m) % m
+        }
+
+        const points = []
+        const edges = [], active = []
+        let minY = Infinity, maxY = 0
+
+        for (let i = 0; i < vertices.length; i += 2)
+        {
+            const p1 = { x: vertices[i], y: vertices[i + 1] }
+            const p2 = { x: vertices[mod(i + 2, vertices.length)], y: vertices[mod(i + 3, vertices.length)] }
+            if (p1.y - p2.y !== 0)
+            {
+                const edge = {}
+                edge.p1 = p1
+                edge.p2 = p2
+                if (p1.y < p2.y)
+                {
+                    edge.minY = p1.y
+                    edge.minX = p1.x
+                }
+                else
+                {
+                    edge.minY = p2.y
+                    edge.minX = p2.x
+                }
+                minY = (edge.minY < minY) ? edge.minY : minY
+                edge.maxY = Math.max(p1.y, p2.y)
+                maxY = (edge.maxY > maxY) ? edge.maxY : maxY
+                if (p1.x - p2.x === 0)
+                {
+                    edge.slope = Infinity
+                    edge.b = p1.x
+                }
+                else
+                {
+                    edge.slope = (p1.y - p2.y) / (p1.x - p2.x)
+                    edge.b = p1.y - edge.slope * p1.x
+                }
+                edges.push(edge)
+            }
+        }
+        edges.sort((a, b) => { return a.minY - b.minY })
+        for (let y = minY; y <= maxY; y++)
+        {
+            for (let i = 0; i < edges.length; i++)
+            {
+                const edge = edges[i]
+                if (edge.minY === y)
+                {
+                    active.push(edge)
+                    edges.splice(i, 1)
+                    i--
+                }
+            }
+            for (let i = 0; i < active.length; i++)
+            {
+                const edge = active[i]
+                if (edge.maxY < y)
+                {
+                    active.splice(i, 1)
+                    i--
+                }
+                else
+                {
+                    if (edge.slope !== Infinity)
+                    {
+                        edge.x = Math.round((y - edge.b) / edge.slope)
+                    }
+                    else
+                    {
+                        edge.x = edge.b
+                    }
+                }
+            }
+            active.sort((a, b) => { return a.x - b.x === 0 ? b.maxY - a.maxY : a.x - b.x })
+            let bit = true, current = 1
+            for (let x = active[0].x; x <= active[active.length - 1].x; x++)
+            {
+                if (bit)
+                {
+                    points.push([x, y])
+                }
+                if (active[current].x === x)
+                {
+                    if (active[current].maxY !== y)
+                    {
+                        bit = !bit
+                    }
+                    current++
+                }
+            }
+        }
+        this.drawPoints(points, tint, alpha)
+        return this
+    }
+
+    /**
+     * draw arc
+     * @param {number} x0 - x-start
+     * @param {number} y0 - y-start
+     * @param {number} radius - radius
+     * @param {number} start angle (radians)
+     * @param {number} end angle (radians)
+     * @param {number} tint
+     * @param {number} alpha
+     * @returns {Pixelate}
+     */
+    arc(x0, y0, radius, start, end, tint, alpha)
+    {
+        const interval = Math.PI / radius / 4
+        const points = []
+        for (let i = start; i <= end; i += interval)
+        {
+            points.push([Math.floor(x0 + Math.cos(i) * radius), Math.floor(y0 + Math.sin(i) * radius)])
+        }
+        this.drawPoints(points, tint, alpha)
+        return this
+    }
+
+    /**
+     * empties cache of old sprites
+     */
+    flush()
+    {
+        this.cache = []
+    }
+}
+
+Pixelate._texture = PIXI.Texture.WHITE
+
+module.exports = Pixelate
+},{"pixi.js":320,"yy-angle":363}],365:[function(require,module,exports){
+(function (process){
+// Copyright Joyent, Inc. and other Node contributors.
 //
-//     "red"
-//     "#f00" or "f00"
-//     "#ff0000" or "ff0000"
-//     "#ff000000" or "ff000000"
-//     "rgb 255 0 0" or "rgb (255, 0, 0)"
-//     "rgb 1.0 0 0" or "rgb (1, 0, 0)"
-//     "rgba (255, 0, 0, 1)" or "rgba 255, 0, 0, 1"
-//     "rgba (1.0, 0, 0, 1)" or "rgba 1.0, 0, 0, 1"
-//     "hsl(0, 100%, 50%)" or "hsl 0 100% 50%"
-//     "hsla(0, 100%, 50%, 1)" or "hsla 0 100% 50%, 1"
-//     "hsv(0, 100%, 100%)" or "hsv 0 100% 100%"
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
 //
-function inputToRGB(color) {
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-    var rgb = { r: 0, g: 0, b: 0 };
-    var a = 1;
-    var s = null;
-    var v = null;
-    var l = null;
-    var ok = false;
-    var format = false;
-
-    if (typeof color == "string") {
-        color = stringInputToObject(color);
+// resolves . and .. elements in a path array with directory names there
+// must be no slashes, empty elements, or device names (c:\) in the array
+// (so also no leading and trailing slashes - it does not distinguish
+// relative and absolute paths)
+function normalizeArray(parts, allowAboveRoot) {
+  // if the path tries to go above the root, `up` ends up > 0
+  var up = 0;
+  for (var i = parts.length - 1; i >= 0; i--) {
+    var last = parts[i];
+    if (last === '.') {
+      parts.splice(i, 1);
+    } else if (last === '..') {
+      parts.splice(i, 1);
+      up++;
+    } else if (up) {
+      parts.splice(i, 1);
+      up--;
     }
+  }
 
-    if (typeof color == "object") {
-        if (isValidCSSUnit(color.r) && isValidCSSUnit(color.g) && isValidCSSUnit(color.b)) {
-            rgb = rgbToRgb(color.r, color.g, color.b);
-            ok = true;
-            format = String(color.r).substr(-1) === "%" ? "prgb" : "rgb";
-        }
-        else if (isValidCSSUnit(color.h) && isValidCSSUnit(color.s) && isValidCSSUnit(color.v)) {
-            s = convertToPercentage(color.s);
-            v = convertToPercentage(color.v);
-            rgb = hsvToRgb(color.h, s, v);
-            ok = true;
-            format = "hsv";
-        }
-        else if (isValidCSSUnit(color.h) && isValidCSSUnit(color.s) && isValidCSSUnit(color.l)) {
-            s = convertToPercentage(color.s);
-            l = convertToPercentage(color.l);
-            rgb = hslToRgb(color.h, s, l);
-            ok = true;
-            format = "hsl";
-        }
-
-        if (color.hasOwnProperty("a")) {
-            a = color.a;
-        }
+  // if the path is allowed to go above the root, restore leading ..s
+  if (allowAboveRoot) {
+    for (; up--; up) {
+      parts.unshift('..');
     }
+  }
 
-    a = boundAlpha(a);
-
-    return {
-        ok: ok,
-        format: color.format || format,
-        r: mathMin(255, mathMax(rgb.r, 0)),
-        g: mathMin(255, mathMax(rgb.g, 0)),
-        b: mathMin(255, mathMax(rgb.b, 0)),
-        a: a
-    };
+  return parts;
 }
 
-
-// Conversion Functions
-// --------------------
-
-// `rgbToHsl`, `rgbToHsv`, `hslToRgb`, `hsvToRgb` modified from:
-// <http://mjijackson.com/2008/02/rgb-to-hsl-and-rgb-to-hsv-color-model-conversion-algorithms-in-javascript>
-
-// `rgbToRgb`
-// Handle bounds / percentage checking to conform to CSS color spec
-// <http://www.w3.org/TR/css3-color/>
-// *Assumes:* r, g, b in [0, 255] or [0, 1]
-// *Returns:* { r, g, b } in [0, 255]
-function rgbToRgb(r, g, b){
-    return {
-        r: bound01(r, 255) * 255,
-        g: bound01(g, 255) * 255,
-        b: bound01(b, 255) * 255
-    };
-}
-
-// `rgbToHsl`
-// Converts an RGB color value to HSL.
-// *Assumes:* r, g, and b are contained in [0, 255] or [0, 1]
-// *Returns:* { h, s, l } in [0,1]
-function rgbToHsl(r, g, b) {
-
-    r = bound01(r, 255);
-    g = bound01(g, 255);
-    b = bound01(b, 255);
-
-    var max = mathMax(r, g, b), min = mathMin(r, g, b);
-    var h, s, l = (max + min) / 2;
-
-    if(max == min) {
-        h = s = 0; // achromatic
-    }
-    else {
-        var d = max - min;
-        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-        switch(max) {
-            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-            case g: h = (b - r) / d + 2; break;
-            case b: h = (r - g) / d + 4; break;
-        }
-
-        h /= 6;
-    }
-
-    return { h: h, s: s, l: l };
-}
-
-// `hslToRgb`
-// Converts an HSL color value to RGB.
-// *Assumes:* h is contained in [0, 1] or [0, 360] and s and l are contained [0, 1] or [0, 100]
-// *Returns:* { r, g, b } in the set [0, 255]
-function hslToRgb(h, s, l) {
-    var r, g, b;
-
-    h = bound01(h, 360);
-    s = bound01(s, 100);
-    l = bound01(l, 100);
-
-    function hue2rgb(p, q, t) {
-        if(t < 0) t += 1;
-        if(t > 1) t -= 1;
-        if(t < 1/6) return p + (q - p) * 6 * t;
-        if(t < 1/2) return q;
-        if(t < 2/3) return p + (q - p) * (2/3 - t) * 6;
-        return p;
-    }
-
-    if(s === 0) {
-        r = g = b = l; // achromatic
-    }
-    else {
-        var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-        var p = 2 * l - q;
-        r = hue2rgb(p, q, h + 1/3);
-        g = hue2rgb(p, q, h);
-        b = hue2rgb(p, q, h - 1/3);
-    }
-
-    return { r: r * 255, g: g * 255, b: b * 255 };
-}
-
-// `rgbToHsv`
-// Converts an RGB color value to HSV
-// *Assumes:* r, g, and b are contained in the set [0, 255] or [0, 1]
-// *Returns:* { h, s, v } in [0,1]
-function rgbToHsv(r, g, b) {
-
-    r = bound01(r, 255);
-    g = bound01(g, 255);
-    b = bound01(b, 255);
-
-    var max = mathMax(r, g, b), min = mathMin(r, g, b);
-    var h, s, v = max;
-
-    var d = max - min;
-    s = max === 0 ? 0 : d / max;
-
-    if(max == min) {
-        h = 0; // achromatic
-    }
-    else {
-        switch(max) {
-            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-            case g: h = (b - r) / d + 2; break;
-            case b: h = (r - g) / d + 4; break;
-        }
-        h /= 6;
-    }
-    return { h: h, s: s, v: v };
-}
-
-// `hsvToRgb`
-// Converts an HSV color value to RGB.
-// *Assumes:* h is contained in [0, 1] or [0, 360] and s and v are contained in [0, 1] or [0, 100]
-// *Returns:* { r, g, b } in the set [0, 255]
- function hsvToRgb(h, s, v) {
-
-    h = bound01(h, 360) * 6;
-    s = bound01(s, 100);
-    v = bound01(v, 100);
-
-    var i = Math.floor(h),
-        f = h - i,
-        p = v * (1 - s),
-        q = v * (1 - f * s),
-        t = v * (1 - (1 - f) * s),
-        mod = i % 6,
-        r = [v, q, p, p, t, v][mod],
-        g = [t, v, v, q, p, p][mod],
-        b = [p, p, t, v, v, q][mod];
-
-    return { r: r * 255, g: g * 255, b: b * 255 };
-}
-
-// `rgbToHex`
-// Converts an RGB color to hex
-// Assumes r, g, and b are contained in the set [0, 255]
-// Returns a 3 or 6 character hex
-function rgbToHex(r, g, b, allow3Char) {
-
-    var hex = [
-        pad2(mathRound(r).toString(16)),
-        pad2(mathRound(g).toString(16)),
-        pad2(mathRound(b).toString(16))
-    ];
-
-    // Return a 3 character hex if possible
-    if (allow3Char && hex[0].charAt(0) == hex[0].charAt(1) && hex[1].charAt(0) == hex[1].charAt(1) && hex[2].charAt(0) == hex[2].charAt(1)) {
-        return hex[0].charAt(0) + hex[1].charAt(0) + hex[2].charAt(0);
-    }
-
-    return hex.join("");
-}
-
-// `rgbaToHex`
-// Converts an RGBA color plus alpha transparency to hex
-// Assumes r, g, b are contained in the set [0, 255] and
-// a in [0, 1]. Returns a 4 or 8 character rgba hex
-function rgbaToHex(r, g, b, a, allow4Char) {
-
-    var hex = [
-        pad2(mathRound(r).toString(16)),
-        pad2(mathRound(g).toString(16)),
-        pad2(mathRound(b).toString(16)),
-        pad2(convertDecimalToHex(a))
-    ];
-
-    // Return a 4 character hex if possible
-    if (allow4Char && hex[0].charAt(0) == hex[0].charAt(1) && hex[1].charAt(0) == hex[1].charAt(1) && hex[2].charAt(0) == hex[2].charAt(1) && hex[3].charAt(0) == hex[3].charAt(1)) {
-        return hex[0].charAt(0) + hex[1].charAt(0) + hex[2].charAt(0) + hex[3].charAt(0);
-    }
-
-    return hex.join("");
-}
-
-// `rgbaToArgbHex`
-// Converts an RGBA color to an ARGB Hex8 string
-// Rarely used, but required for "toFilter()"
-function rgbaToArgbHex(r, g, b, a) {
-
-    var hex = [
-        pad2(convertDecimalToHex(a)),
-        pad2(mathRound(r).toString(16)),
-        pad2(mathRound(g).toString(16)),
-        pad2(mathRound(b).toString(16))
-    ];
-
-    return hex.join("");
-}
-
-// `equals`
-// Can be called with any tinycolor input
-tinycolor.equals = function (color1, color2) {
-    if (!color1 || !color2) { return false; }
-    return tinycolor(color1).toRgbString() == tinycolor(color2).toRgbString();
+// Split a filename into [root, dir, basename, ext], unix version
+// 'root' is just a slash, or nothing.
+var splitPathRe =
+    /^(\/?|)([\s\S]*?)((?:\.{1,2}|[^\/]+?|)(\.[^.\/]*|))(?:[\/]*)$/;
+var splitPath = function(filename) {
+  return splitPathRe.exec(filename).slice(1);
 };
 
-tinycolor.random = function() {
-    return tinycolor.fromRatio({
-        r: mathRandom(),
-        g: mathRandom(),
-        b: mathRandom()
-    });
+// path.resolve([from ...], to)
+// posix version
+exports.resolve = function() {
+  var resolvedPath = '',
+      resolvedAbsolute = false;
+
+  for (var i = arguments.length - 1; i >= -1 && !resolvedAbsolute; i--) {
+    var path = (i >= 0) ? arguments[i] : process.cwd();
+
+    // Skip empty and invalid entries
+    if (typeof path !== 'string') {
+      throw new TypeError('Arguments to path.resolve must be strings');
+    } else if (!path) {
+      continue;
+    }
+
+    resolvedPath = path + '/' + resolvedPath;
+    resolvedAbsolute = path.charAt(0) === '/';
+  }
+
+  // At this point the path should be resolved to a full absolute path, but
+  // handle relative paths to be safe (might happen when process.cwd() fails)
+
+  // Normalize the path
+  resolvedPath = normalizeArray(filter(resolvedPath.split('/'), function(p) {
+    return !!p;
+  }), !resolvedAbsolute).join('/');
+
+  return ((resolvedAbsolute ? '/' : '') + resolvedPath) || '.';
+};
+
+// path.normalize(path)
+// posix version
+exports.normalize = function(path) {
+  var isAbsolute = exports.isAbsolute(path),
+      trailingSlash = substr(path, -1) === '/';
+
+  // Normalize the path
+  path = normalizeArray(filter(path.split('/'), function(p) {
+    return !!p;
+  }), !isAbsolute).join('/');
+
+  if (!path && !isAbsolute) {
+    path = '.';
+  }
+  if (path && trailingSlash) {
+    path += '/';
+  }
+
+  return (isAbsolute ? '/' : '') + path;
+};
+
+// posix version
+exports.isAbsolute = function(path) {
+  return path.charAt(0) === '/';
+};
+
+// posix version
+exports.join = function() {
+  var paths = Array.prototype.slice.call(arguments, 0);
+  return exports.normalize(filter(paths, function(p, index) {
+    if (typeof p !== 'string') {
+      throw new TypeError('Arguments to path.join must be strings');
+    }
+    return p;
+  }).join('/'));
 };
 
 
-// Modification Functions
-// ----------------------
-// Thanks to less.js for some of the basics here
-// <https://github.com/cloudhead/less.js/blob/master/lib/less/functions.js>
+// path.relative(from, to)
+// posix version
+exports.relative = function(from, to) {
+  from = exports.resolve(from).substr(1);
+  to = exports.resolve(to).substr(1);
 
-function desaturate(color, amount) {
-    amount = (amount === 0) ? 0 : (amount || 10);
-    var hsl = tinycolor(color).toHsl();
-    hsl.s -= amount / 100;
-    hsl.s = clamp01(hsl.s);
-    return tinycolor(hsl);
-}
-
-function saturate(color, amount) {
-    amount = (amount === 0) ? 0 : (amount || 10);
-    var hsl = tinycolor(color).toHsl();
-    hsl.s += amount / 100;
-    hsl.s = clamp01(hsl.s);
-    return tinycolor(hsl);
-}
-
-function greyscale(color) {
-    return tinycolor(color).desaturate(100);
-}
-
-function lighten (color, amount) {
-    amount = (amount === 0) ? 0 : (amount || 10);
-    var hsl = tinycolor(color).toHsl();
-    hsl.l += amount / 100;
-    hsl.l = clamp01(hsl.l);
-    return tinycolor(hsl);
-}
-
-function brighten(color, amount) {
-    amount = (amount === 0) ? 0 : (amount || 10);
-    var rgb = tinycolor(color).toRgb();
-    rgb.r = mathMax(0, mathMin(255, rgb.r - mathRound(255 * - (amount / 100))));
-    rgb.g = mathMax(0, mathMin(255, rgb.g - mathRound(255 * - (amount / 100))));
-    rgb.b = mathMax(0, mathMin(255, rgb.b - mathRound(255 * - (amount / 100))));
-    return tinycolor(rgb);
-}
-
-function darken (color, amount) {
-    amount = (amount === 0) ? 0 : (amount || 10);
-    var hsl = tinycolor(color).toHsl();
-    hsl.l -= amount / 100;
-    hsl.l = clamp01(hsl.l);
-    return tinycolor(hsl);
-}
-
-// Spin takes a positive or negative amount within [-360, 360] indicating the change of hue.
-// Values outside of this range will be wrapped into this range.
-function spin(color, amount) {
-    var hsl = tinycolor(color).toHsl();
-    var hue = (hsl.h + amount) % 360;
-    hsl.h = hue < 0 ? 360 + hue : hue;
-    return tinycolor(hsl);
-}
-
-// Combination Functions
-// ---------------------
-// Thanks to jQuery xColor for some of the ideas behind these
-// <https://github.com/infusion/jQuery-xcolor/blob/master/jquery.xcolor.js>
-
-function complement(color) {
-    var hsl = tinycolor(color).toHsl();
-    hsl.h = (hsl.h + 180) % 360;
-    return tinycolor(hsl);
-}
-
-function triad(color) {
-    var hsl = tinycolor(color).toHsl();
-    var h = hsl.h;
-    return [
-        tinycolor(color),
-        tinycolor({ h: (h + 120) % 360, s: hsl.s, l: hsl.l }),
-        tinycolor({ h: (h + 240) % 360, s: hsl.s, l: hsl.l })
-    ];
-}
-
-function tetrad(color) {
-    var hsl = tinycolor(color).toHsl();
-    var h = hsl.h;
-    return [
-        tinycolor(color),
-        tinycolor({ h: (h + 90) % 360, s: hsl.s, l: hsl.l }),
-        tinycolor({ h: (h + 180) % 360, s: hsl.s, l: hsl.l }),
-        tinycolor({ h: (h + 270) % 360, s: hsl.s, l: hsl.l })
-    ];
-}
-
-function splitcomplement(color) {
-    var hsl = tinycolor(color).toHsl();
-    var h = hsl.h;
-    return [
-        tinycolor(color),
-        tinycolor({ h: (h + 72) % 360, s: hsl.s, l: hsl.l}),
-        tinycolor({ h: (h + 216) % 360, s: hsl.s, l: hsl.l})
-    ];
-}
-
-function analogous(color, results, slices) {
-    results = results || 6;
-    slices = slices || 30;
-
-    var hsl = tinycolor(color).toHsl();
-    var part = 360 / slices;
-    var ret = [tinycolor(color)];
-
-    for (hsl.h = ((hsl.h - (part * results >> 1)) + 720) % 360; --results; ) {
-        hsl.h = (hsl.h + part) % 360;
-        ret.push(tinycolor(hsl));
-    }
-    return ret;
-}
-
-function monochromatic(color, results) {
-    results = results || 6;
-    var hsv = tinycolor(color).toHsv();
-    var h = hsv.h, s = hsv.s, v = hsv.v;
-    var ret = [];
-    var modification = 1 / results;
-
-    while (results--) {
-        ret.push(tinycolor({ h: h, s: s, v: v}));
-        v = (v + modification) % 1;
+  function trim(arr) {
+    var start = 0;
+    for (; start < arr.length; start++) {
+      if (arr[start] !== '') break;
     }
 
-    return ret;
-}
+    var end = arr.length - 1;
+    for (; end >= 0; end--) {
+      if (arr[end] !== '') break;
+    }
 
-// Utility Functions
-// ---------------------
+    if (start > end) return [];
+    return arr.slice(start, end - start + 1);
+  }
 
-tinycolor.mix = function(color1, color2, amount) {
-    amount = (amount === 0) ? 0 : (amount || 50);
+  var fromParts = trim(from.split('/'));
+  var toParts = trim(to.split('/'));
 
-    var rgb1 = tinycolor(color1).toRgb();
-    var rgb2 = tinycolor(color2).toRgb();
+  var length = Math.min(fromParts.length, toParts.length);
+  var samePartsLength = length;
+  for (var i = 0; i < length; i++) {
+    if (fromParts[i] !== toParts[i]) {
+      samePartsLength = i;
+      break;
+    }
+  }
 
-    var p = amount / 100;
+  var outputParts = [];
+  for (var i = samePartsLength; i < fromParts.length; i++) {
+    outputParts.push('..');
+  }
 
-    var rgba = {
-        r: ((rgb2.r - rgb1.r) * p) + rgb1.r,
-        g: ((rgb2.g - rgb1.g) * p) + rgb1.g,
-        b: ((rgb2.b - rgb1.b) * p) + rgb1.b,
-        a: ((rgb2.a - rgb1.a) * p) + rgb1.a
-    };
+  outputParts = outputParts.concat(toParts.slice(samePartsLength));
 
-    return tinycolor(rgba);
+  return outputParts.join('/');
+};
+
+exports.sep = '/';
+exports.delimiter = ':';
+
+exports.dirname = function(path) {
+  var result = splitPath(path),
+      root = result[0],
+      dir = result[1];
+
+  if (!root && !dir) {
+    // No dirname whatsoever
+    return '.';
+  }
+
+  if (dir) {
+    // It has a dirname, strip trailing slash
+    dir = dir.substr(0, dir.length - 1);
+  }
+
+  return root + dir;
 };
 
 
-// Readability Functions
-// ---------------------
-// <http://www.w3.org/TR/2008/REC-WCAG20-20081211/#contrast-ratiodef (WCAG Version 2)
-
-// `contrast`
-// Analyze the 2 colors and returns the color contrast defined by (WCAG Version 2)
-tinycolor.readability = function(color1, color2) {
-    var c1 = tinycolor(color1);
-    var c2 = tinycolor(color2);
-    return (Math.max(c1.getLuminance(),c2.getLuminance())+0.05) / (Math.min(c1.getLuminance(),c2.getLuminance())+0.05);
+exports.basename = function(path, ext) {
+  var f = splitPath(path)[2];
+  // TODO: make this comparison case-insensitive on windows?
+  if (ext && f.substr(-1 * ext.length) === ext) {
+    f = f.substr(0, f.length - ext.length);
+  }
+  return f;
 };
 
-// `isReadable`
-// Ensure that foreground and background color combinations meet WCAG2 guidelines.
-// The third argument is an optional Object.
-//      the 'level' property states 'AA' or 'AAA' - if missing or invalid, it defaults to 'AA';
-//      the 'size' property states 'large' or 'small' - if missing or invalid, it defaults to 'small'.
-// If the entire object is absent, isReadable defaults to {level:"AA",size:"small"}.
 
-// *Example*
-//    tinycolor.isReadable("#000", "#111") => false
-//    tinycolor.isReadable("#000", "#111",{level:"AA",size:"large"}) => false
-tinycolor.isReadable = function(color1, color2, wcag2) {
-    var readability = tinycolor.readability(color1, color2);
-    var wcag2Parms, out;
+exports.extname = function(path) {
+  return splitPath(path)[3];
+};
 
-    out = false;
-
-    wcag2Parms = validateWCAG2Parms(wcag2);
-    switch (wcag2Parms.level + wcag2Parms.size) {
-        case "AAsmall":
-        case "AAAlarge":
-            out = readability >= 4.5;
-            break;
-        case "AAlarge":
-            out = readability >= 3;
-            break;
-        case "AAAsmall":
-            out = readability >= 7;
-            break;
+function filter (xs, f) {
+    if (xs.filter) return xs.filter(f);
+    var res = [];
+    for (var i = 0; i < xs.length; i++) {
+        if (f(xs[i], i, xs)) res.push(xs[i]);
     }
-    return out;
+    return res;
+}
 
-};
+// String.prototype.substr - negative index don't work in IE8
+var substr = 'ab'.substr(-1) === 'b'
+    ? function (str, start, len) { return str.substr(start, len) }
+    : function (str, start, len) {
+        if (start < 0) start = str.length + start;
+        return str.substr(start, len);
+    }
+;
 
-// `mostReadable`
-// Given a base color and a list of possible foreground or background
-// colors for that base, returns the most readable color.
-// Optionally returns Black or White if the most readable color is unreadable.
-// *Example*
-//    tinycolor.mostReadable(tinycolor.mostReadable("#123", ["#124", "#125"],{includeFallbackColors:false}).toHexString(); // "#112255"
-//    tinycolor.mostReadable(tinycolor.mostReadable("#123", ["#124", "#125"],{includeFallbackColors:true}).toHexString();  // "#ffffff"
-//    tinycolor.mostReadable("#a8015a", ["#faf3f3"],{includeFallbackColors:true,level:"AAA",size:"large"}).toHexString(); // "#faf3f3"
-//    tinycolor.mostReadable("#a8015a", ["#faf3f3"],{includeFallbackColors:true,level:"AAA",size:"small"}).toHexString(); // "#ffffff"
-tinycolor.mostReadable = function(baseColor, colorList, args) {
-    var bestColor = null;
-    var bestScore = 0;
-    var readability;
-    var includeFallbackColors, level, size ;
-    args = args || {};
-    includeFallbackColors = args.includeFallbackColors ;
-    level = args.level;
-    size = args.size;
+}).call(this,require('_process'))
+},{"_process":366}],366:[function(require,module,exports){
+// shim for using process in browser
+var process = module.exports = {};
 
-    for (var i= 0; i < colorList.length ; i++) {
-        readability = tinycolor.readability(baseColor, colorList[i]);
-        if (readability > bestScore) {
-            bestScore = readability;
-            bestColor = tinycolor(colorList[i]);
+// cached from whatever global is present so that test runners that stub it
+// don't break things.  But we need to wrap it in a try catch in case it is
+// wrapped in strict mode code which doesn't define any globals.  It's inside a
+// function because try/catches deoptimize in certain engines.
+
+var cachedSetTimeout;
+var cachedClearTimeout;
+
+function defaultSetTimout() {
+    throw new Error('setTimeout has not been defined');
+}
+function defaultClearTimeout () {
+    throw new Error('clearTimeout has not been defined');
+}
+(function () {
+    try {
+        if (typeof setTimeout === 'function') {
+            cachedSetTimeout = setTimeout;
+        } else {
+            cachedSetTimeout = defaultSetTimout;
+        }
+    } catch (e) {
+        cachedSetTimeout = defaultSetTimout;
+    }
+    try {
+        if (typeof clearTimeout === 'function') {
+            cachedClearTimeout = clearTimeout;
+        } else {
+            cachedClearTimeout = defaultClearTimeout;
+        }
+    } catch (e) {
+        cachedClearTimeout = defaultClearTimeout;
+    }
+} ())
+function runTimeout(fun) {
+    if (cachedSetTimeout === setTimeout) {
+        //normal enviroments in sane situations
+        return setTimeout(fun, 0);
+    }
+    // if setTimeout wasn't available but was latter defined
+    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
+        cachedSetTimeout = setTimeout;
+        return setTimeout(fun, 0);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedSetTimeout(fun, 0);
+    } catch(e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
+            return cachedSetTimeout.call(null, fun, 0);
+        } catch(e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
+            return cachedSetTimeout.call(this, fun, 0);
         }
     }
 
-    if (tinycolor.isReadable(baseColor, bestColor, {"level":level,"size":size}) || !includeFallbackColors) {
-        return bestColor;
+
+}
+function runClearTimeout(marker) {
+    if (cachedClearTimeout === clearTimeout) {
+        //normal enviroments in sane situations
+        return clearTimeout(marker);
     }
-    else {
-        args.includeFallbackColors=false;
-        return tinycolor.mostReadable(baseColor,["#fff", "#000"],args);
+    // if clearTimeout wasn't available but was latter defined
+    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
+        cachedClearTimeout = clearTimeout;
+        return clearTimeout(marker);
     }
-};
-
-
-// Big List of Colors
-// ------------------
-// <http://www.w3.org/TR/css3-color/#svg-color>
-var names = tinycolor.names = {
-    aliceblue: "f0f8ff",
-    antiquewhite: "faebd7",
-    aqua: "0ff",
-    aquamarine: "7fffd4",
-    azure: "f0ffff",
-    beige: "f5f5dc",
-    bisque: "ffe4c4",
-    black: "000",
-    blanchedalmond: "ffebcd",
-    blue: "00f",
-    blueviolet: "8a2be2",
-    brown: "a52a2a",
-    burlywood: "deb887",
-    burntsienna: "ea7e5d",
-    cadetblue: "5f9ea0",
-    chartreuse: "7fff00",
-    chocolate: "d2691e",
-    coral: "ff7f50",
-    cornflowerblue: "6495ed",
-    cornsilk: "fff8dc",
-    crimson: "dc143c",
-    cyan: "0ff",
-    darkblue: "00008b",
-    darkcyan: "008b8b",
-    darkgoldenrod: "b8860b",
-    darkgray: "a9a9a9",
-    darkgreen: "006400",
-    darkgrey: "a9a9a9",
-    darkkhaki: "bdb76b",
-    darkmagenta: "8b008b",
-    darkolivegreen: "556b2f",
-    darkorange: "ff8c00",
-    darkorchid: "9932cc",
-    darkred: "8b0000",
-    darksalmon: "e9967a",
-    darkseagreen: "8fbc8f",
-    darkslateblue: "483d8b",
-    darkslategray: "2f4f4f",
-    darkslategrey: "2f4f4f",
-    darkturquoise: "00ced1",
-    darkviolet: "9400d3",
-    deeppink: "ff1493",
-    deepskyblue: "00bfff",
-    dimgray: "696969",
-    dimgrey: "696969",
-    dodgerblue: "1e90ff",
-    firebrick: "b22222",
-    floralwhite: "fffaf0",
-    forestgreen: "228b22",
-    fuchsia: "f0f",
-    gainsboro: "dcdcdc",
-    ghostwhite: "f8f8ff",
-    gold: "ffd700",
-    goldenrod: "daa520",
-    gray: "808080",
-    green: "008000",
-    greenyellow: "adff2f",
-    grey: "808080",
-    honeydew: "f0fff0",
-    hotpink: "ff69b4",
-    indianred: "cd5c5c",
-    indigo: "4b0082",
-    ivory: "fffff0",
-    khaki: "f0e68c",
-    lavender: "e6e6fa",
-    lavenderblush: "fff0f5",
-    lawngreen: "7cfc00",
-    lemonchiffon: "fffacd",
-    lightblue: "add8e6",
-    lightcoral: "f08080",
-    lightcyan: "e0ffff",
-    lightgoldenrodyellow: "fafad2",
-    lightgray: "d3d3d3",
-    lightgreen: "90ee90",
-    lightgrey: "d3d3d3",
-    lightpink: "ffb6c1",
-    lightsalmon: "ffa07a",
-    lightseagreen: "20b2aa",
-    lightskyblue: "87cefa",
-    lightslategray: "789",
-    lightslategrey: "789",
-    lightsteelblue: "b0c4de",
-    lightyellow: "ffffe0",
-    lime: "0f0",
-    limegreen: "32cd32",
-    linen: "faf0e6",
-    magenta: "f0f",
-    maroon: "800000",
-    mediumaquamarine: "66cdaa",
-    mediumblue: "0000cd",
-    mediumorchid: "ba55d3",
-    mediumpurple: "9370db",
-    mediumseagreen: "3cb371",
-    mediumslateblue: "7b68ee",
-    mediumspringgreen: "00fa9a",
-    mediumturquoise: "48d1cc",
-    mediumvioletred: "c71585",
-    midnightblue: "191970",
-    mintcream: "f5fffa",
-    mistyrose: "ffe4e1",
-    moccasin: "ffe4b5",
-    navajowhite: "ffdead",
-    navy: "000080",
-    oldlace: "fdf5e6",
-    olive: "808000",
-    olivedrab: "6b8e23",
-    orange: "ffa500",
-    orangered: "ff4500",
-    orchid: "da70d6",
-    palegoldenrod: "eee8aa",
-    palegreen: "98fb98",
-    paleturquoise: "afeeee",
-    palevioletred: "db7093",
-    papayawhip: "ffefd5",
-    peachpuff: "ffdab9",
-    peru: "cd853f",
-    pink: "ffc0cb",
-    plum: "dda0dd",
-    powderblue: "b0e0e6",
-    purple: "800080",
-    rebeccapurple: "663399",
-    red: "f00",
-    rosybrown: "bc8f8f",
-    royalblue: "4169e1",
-    saddlebrown: "8b4513",
-    salmon: "fa8072",
-    sandybrown: "f4a460",
-    seagreen: "2e8b57",
-    seashell: "fff5ee",
-    sienna: "a0522d",
-    silver: "c0c0c0",
-    skyblue: "87ceeb",
-    slateblue: "6a5acd",
-    slategray: "708090",
-    slategrey: "708090",
-    snow: "fffafa",
-    springgreen: "00ff7f",
-    steelblue: "4682b4",
-    tan: "d2b48c",
-    teal: "008080",
-    thistle: "d8bfd8",
-    tomato: "ff6347",
-    turquoise: "40e0d0",
-    violet: "ee82ee",
-    wheat: "f5deb3",
-    white: "fff",
-    whitesmoke: "f5f5f5",
-    yellow: "ff0",
-    yellowgreen: "9acd32"
-};
-
-// Make it easy to access colors via `hexNames[hex]`
-var hexNames = tinycolor.hexNames = flip(names);
-
-
-// Utilities
-// ---------
-
-// `{ 'name1': 'val1' }` becomes `{ 'val1': 'name1' }`
-function flip(o) {
-    var flipped = { };
-    for (var i in o) {
-        if (o.hasOwnProperty(i)) {
-            flipped[o[i]] = i;
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedClearTimeout(marker);
+    } catch (e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
+            return cachedClearTimeout.call(null, marker);
+        } catch (e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
+            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
+            return cachedClearTimeout.call(this, marker);
         }
     }
-    return flipped;
+
+
+
+}
+var queue = [];
+var draining = false;
+var currentQueue;
+var queueIndex = -1;
+
+function cleanUpNextTick() {
+    if (!draining || !currentQueue) {
+        return;
+    }
+    draining = false;
+    if (currentQueue.length) {
+        queue = currentQueue.concat(queue);
+    } else {
+        queueIndex = -1;
+    }
+    if (queue.length) {
+        drainQueue();
+    }
 }
 
-// Return a valid alpha value [0,1] with all invalid values being set to 1
-function boundAlpha(a) {
-    a = parseFloat(a);
-
-    if (isNaN(a) || a < 0 || a > 1) {
-        a = 1;
+function drainQueue() {
+    if (draining) {
+        return;
     }
+    var timeout = runTimeout(cleanUpNextTick);
+    draining = true;
 
-    return a;
+    var len = queue.length;
+    while(len) {
+        currentQueue = queue;
+        queue = [];
+        while (++queueIndex < len) {
+            if (currentQueue) {
+                currentQueue[queueIndex].run();
+            }
+        }
+        queueIndex = -1;
+        len = queue.length;
+    }
+    currentQueue = null;
+    draining = false;
+    runClearTimeout(timeout);
 }
 
-// Take input from [0, n] and return it as [0, 1]
-function bound01(n, max) {
-    if (isOnePointZero(n)) { n = "100%"; }
-
-    var processPercent = isPercentage(n);
-    n = mathMin(max, mathMax(0, parseFloat(n)));
-
-    // Automatically convert percentage into number
-    if (processPercent) {
-        n = parseInt(n * max, 10) / 100;
+process.nextTick = function (fun) {
+    var args = new Array(arguments.length - 1);
+    if (arguments.length > 1) {
+        for (var i = 1; i < arguments.length; i++) {
+            args[i - 1] = arguments[i];
+        }
     }
-
-    // Handle floating point rounding errors
-    if ((Math.abs(n - max) < 0.000001)) {
-        return 1;
+    queue.push(new Item(fun, args));
+    if (queue.length === 1 && !draining) {
+        runTimeout(drainQueue);
     }
+};
 
-    // Convert into [0, 1] range if it isn't already
-    return (n % max) / parseFloat(max);
+// v8 likes predictible objects
+function Item(fun, array) {
+    this.fun = fun;
+    this.array = array;
+}
+Item.prototype.run = function () {
+    this.fun.apply(null, this.array);
+};
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+process.version = ''; // empty string to avoid regexp issues
+process.versions = {};
+
+function noop() {}
+
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+process.prependListener = noop;
+process.prependOnceListener = noop;
+
+process.listeners = function (name) { return [] }
+
+process.binding = function (name) {
+    throw new Error('process.binding is not supported');
+};
+
+process.cwd = function () { return '/' };
+process.chdir = function (dir) {
+    throw new Error('process.chdir is not supported');
+};
+process.umask = function() { return 0; };
+
+},{}],367:[function(require,module,exports){
+(function (global){
+/*! https://mths.be/punycode v1.4.1 by @mathias */
+;(function(root) {
+
+	/** Detect free variables */
+	var freeExports = typeof exports == 'object' && exports &&
+		!exports.nodeType && exports;
+	var freeModule = typeof module == 'object' && module &&
+		!module.nodeType && module;
+	var freeGlobal = typeof global == 'object' && global;
+	if (
+		freeGlobal.global === freeGlobal ||
+		freeGlobal.window === freeGlobal ||
+		freeGlobal.self === freeGlobal
+	) {
+		root = freeGlobal;
+	}
+
+	/**
+	 * The `punycode` object.
+	 * @name punycode
+	 * @type Object
+	 */
+	var punycode,
+
+	/** Highest positive signed 32-bit float value */
+	maxInt = 2147483647, // aka. 0x7FFFFFFF or 2^31-1
+
+	/** Bootstring parameters */
+	base = 36,
+	tMin = 1,
+	tMax = 26,
+	skew = 38,
+	damp = 700,
+	initialBias = 72,
+	initialN = 128, // 0x80
+	delimiter = '-', // '\x2D'
+
+	/** Regular expressions */
+	regexPunycode = /^xn--/,
+	regexNonASCII = /[^\x20-\x7E]/, // unprintable ASCII chars + non-ASCII chars
+	regexSeparators = /[\x2E\u3002\uFF0E\uFF61]/g, // RFC 3490 separators
+
+	/** Error messages */
+	errors = {
+		'overflow': 'Overflow: input needs wider integers to process',
+		'not-basic': 'Illegal input >= 0x80 (not a basic code point)',
+		'invalid-input': 'Invalid input'
+	},
+
+	/** Convenience shortcuts */
+	baseMinusTMin = base - tMin,
+	floor = Math.floor,
+	stringFromCharCode = String.fromCharCode,
+
+	/** Temporary variable */
+	key;
+
+	/*--------------------------------------------------------------------------*/
+
+	/**
+	 * A generic error utility function.
+	 * @private
+	 * @param {String} type The error type.
+	 * @returns {Error} Throws a `RangeError` with the applicable error message.
+	 */
+	function error(type) {
+		throw new RangeError(errors[type]);
+	}
+
+	/**
+	 * A generic `Array#map` utility function.
+	 * @private
+	 * @param {Array} array The array to iterate over.
+	 * @param {Function} callback The function that gets called for every array
+	 * item.
+	 * @returns {Array} A new array of values returned by the callback function.
+	 */
+	function map(array, fn) {
+		var length = array.length;
+		var result = [];
+		while (length--) {
+			result[length] = fn(array[length]);
+		}
+		return result;
+	}
+
+	/**
+	 * A simple `Array#map`-like wrapper to work with domain name strings or email
+	 * addresses.
+	 * @private
+	 * @param {String} domain The domain name or email address.
+	 * @param {Function} callback The function that gets called for every
+	 * character.
+	 * @returns {Array} A new string of characters returned by the callback
+	 * function.
+	 */
+	function mapDomain(string, fn) {
+		var parts = string.split('@');
+		var result = '';
+		if (parts.length > 1) {
+			// In email addresses, only the domain name should be punycoded. Leave
+			// the local part (i.e. everything up to `@`) intact.
+			result = parts[0] + '@';
+			string = parts[1];
+		}
+		// Avoid `split(regex)` for IE8 compatibility. See #17.
+		string = string.replace(regexSeparators, '\x2E');
+		var labels = string.split('.');
+		var encoded = map(labels, fn).join('.');
+		return result + encoded;
+	}
+
+	/**
+	 * Creates an array containing the numeric code points of each Unicode
+	 * character in the string. While JavaScript uses UCS-2 internally,
+	 * this function will convert a pair of surrogate halves (each of which
+	 * UCS-2 exposes as separate characters) into a single code point,
+	 * matching UTF-16.
+	 * @see `punycode.ucs2.encode`
+	 * @see <https://mathiasbynens.be/notes/javascript-encoding>
+	 * @memberOf punycode.ucs2
+	 * @name decode
+	 * @param {String} string The Unicode input string (UCS-2).
+	 * @returns {Array} The new array of code points.
+	 */
+	function ucs2decode(string) {
+		var output = [],
+		    counter = 0,
+		    length = string.length,
+		    value,
+		    extra;
+		while (counter < length) {
+			value = string.charCodeAt(counter++);
+			if (value >= 0xD800 && value <= 0xDBFF && counter < length) {
+				// high surrogate, and there is a next character
+				extra = string.charCodeAt(counter++);
+				if ((extra & 0xFC00) == 0xDC00) { // low surrogate
+					output.push(((value & 0x3FF) << 10) + (extra & 0x3FF) + 0x10000);
+				} else {
+					// unmatched surrogate; only append this code unit, in case the next
+					// code unit is the high surrogate of a surrogate pair
+					output.push(value);
+					counter--;
+				}
+			} else {
+				output.push(value);
+			}
+		}
+		return output;
+	}
+
+	/**
+	 * Creates a string based on an array of numeric code points.
+	 * @see `punycode.ucs2.decode`
+	 * @memberOf punycode.ucs2
+	 * @name encode
+	 * @param {Array} codePoints The array of numeric code points.
+	 * @returns {String} The new Unicode string (UCS-2).
+	 */
+	function ucs2encode(array) {
+		return map(array, function(value) {
+			var output = '';
+			if (value > 0xFFFF) {
+				value -= 0x10000;
+				output += stringFromCharCode(value >>> 10 & 0x3FF | 0xD800);
+				value = 0xDC00 | value & 0x3FF;
+			}
+			output += stringFromCharCode(value);
+			return output;
+		}).join('');
+	}
+
+	/**
+	 * Converts a basic code point into a digit/integer.
+	 * @see `digitToBasic()`
+	 * @private
+	 * @param {Number} codePoint The basic numeric code point value.
+	 * @returns {Number} The numeric value of a basic code point (for use in
+	 * representing integers) in the range `0` to `base - 1`, or `base` if
+	 * the code point does not represent a value.
+	 */
+	function basicToDigit(codePoint) {
+		if (codePoint - 48 < 10) {
+			return codePoint - 22;
+		}
+		if (codePoint - 65 < 26) {
+			return codePoint - 65;
+		}
+		if (codePoint - 97 < 26) {
+			return codePoint - 97;
+		}
+		return base;
+	}
+
+	/**
+	 * Converts a digit/integer into a basic code point.
+	 * @see `basicToDigit()`
+	 * @private
+	 * @param {Number} digit The numeric value of a basic code point.
+	 * @returns {Number} The basic code point whose value (when used for
+	 * representing integers) is `digit`, which needs to be in the range
+	 * `0` to `base - 1`. If `flag` is non-zero, the uppercase form is
+	 * used; else, the lowercase form is used. The behavior is undefined
+	 * if `flag` is non-zero and `digit` has no uppercase form.
+	 */
+	function digitToBasic(digit, flag) {
+		//  0..25 map to ASCII a..z or A..Z
+		// 26..35 map to ASCII 0..9
+		return digit + 22 + 75 * (digit < 26) - ((flag != 0) << 5);
+	}
+
+	/**
+	 * Bias adaptation function as per section 3.4 of RFC 3492.
+	 * https://tools.ietf.org/html/rfc3492#section-3.4
+	 * @private
+	 */
+	function adapt(delta, numPoints, firstTime) {
+		var k = 0;
+		delta = firstTime ? floor(delta / damp) : delta >> 1;
+		delta += floor(delta / numPoints);
+		for (/* no initialization */; delta > baseMinusTMin * tMax >> 1; k += base) {
+			delta = floor(delta / baseMinusTMin);
+		}
+		return floor(k + (baseMinusTMin + 1) * delta / (delta + skew));
+	}
+
+	/**
+	 * Converts a Punycode string of ASCII-only symbols to a string of Unicode
+	 * symbols.
+	 * @memberOf punycode
+	 * @param {String} input The Punycode string of ASCII-only symbols.
+	 * @returns {String} The resulting string of Unicode symbols.
+	 */
+	function decode(input) {
+		// Don't use UCS-2
+		var output = [],
+		    inputLength = input.length,
+		    out,
+		    i = 0,
+		    n = initialN,
+		    bias = initialBias,
+		    basic,
+		    j,
+		    index,
+		    oldi,
+		    w,
+		    k,
+		    digit,
+		    t,
+		    /** Cached calculation results */
+		    baseMinusT;
+
+		// Handle the basic code points: let `basic` be the number of input code
+		// points before the last delimiter, or `0` if there is none, then copy
+		// the first basic code points to the output.
+
+		basic = input.lastIndexOf(delimiter);
+		if (basic < 0) {
+			basic = 0;
+		}
+
+		for (j = 0; j < basic; ++j) {
+			// if it's not a basic code point
+			if (input.charCodeAt(j) >= 0x80) {
+				error('not-basic');
+			}
+			output.push(input.charCodeAt(j));
+		}
+
+		// Main decoding loop: start just after the last delimiter if any basic code
+		// points were copied; start at the beginning otherwise.
+
+		for (index = basic > 0 ? basic + 1 : 0; index < inputLength; /* no final expression */) {
+
+			// `index` is the index of the next character to be consumed.
+			// Decode a generalized variable-length integer into `delta`,
+			// which gets added to `i`. The overflow checking is easier
+			// if we increase `i` as we go, then subtract off its starting
+			// value at the end to obtain `delta`.
+			for (oldi = i, w = 1, k = base; /* no condition */; k += base) {
+
+				if (index >= inputLength) {
+					error('invalid-input');
+				}
+
+				digit = basicToDigit(input.charCodeAt(index++));
+
+				if (digit >= base || digit > floor((maxInt - i) / w)) {
+					error('overflow');
+				}
+
+				i += digit * w;
+				t = k <= bias ? tMin : (k >= bias + tMax ? tMax : k - bias);
+
+				if (digit < t) {
+					break;
+				}
+
+				baseMinusT = base - t;
+				if (w > floor(maxInt / baseMinusT)) {
+					error('overflow');
+				}
+
+				w *= baseMinusT;
+
+			}
+
+			out = output.length + 1;
+			bias = adapt(i - oldi, out, oldi == 0);
+
+			// `i` was supposed to wrap around from `out` to `0`,
+			// incrementing `n` each time, so we'll fix that now:
+			if (floor(i / out) > maxInt - n) {
+				error('overflow');
+			}
+
+			n += floor(i / out);
+			i %= out;
+
+			// Insert `n` at position `i` of the output
+			output.splice(i++, 0, n);
+
+		}
+
+		return ucs2encode(output);
+	}
+
+	/**
+	 * Converts a string of Unicode symbols (e.g. a domain name label) to a
+	 * Punycode string of ASCII-only symbols.
+	 * @memberOf punycode
+	 * @param {String} input The string of Unicode symbols.
+	 * @returns {String} The resulting Punycode string of ASCII-only symbols.
+	 */
+	function encode(input) {
+		var n,
+		    delta,
+		    handledCPCount,
+		    basicLength,
+		    bias,
+		    j,
+		    m,
+		    q,
+		    k,
+		    t,
+		    currentValue,
+		    output = [],
+		    /** `inputLength` will hold the number of code points in `input`. */
+		    inputLength,
+		    /** Cached calculation results */
+		    handledCPCountPlusOne,
+		    baseMinusT,
+		    qMinusT;
+
+		// Convert the input in UCS-2 to Unicode
+		input = ucs2decode(input);
+
+		// Cache the length
+		inputLength = input.length;
+
+		// Initialize the state
+		n = initialN;
+		delta = 0;
+		bias = initialBias;
+
+		// Handle the basic code points
+		for (j = 0; j < inputLength; ++j) {
+			currentValue = input[j];
+			if (currentValue < 0x80) {
+				output.push(stringFromCharCode(currentValue));
+			}
+		}
+
+		handledCPCount = basicLength = output.length;
+
+		// `handledCPCount` is the number of code points that have been handled;
+		// `basicLength` is the number of basic code points.
+
+		// Finish the basic string - if it is not empty - with a delimiter
+		if (basicLength) {
+			output.push(delimiter);
+		}
+
+		// Main encoding loop:
+		while (handledCPCount < inputLength) {
+
+			// All non-basic code points < n have been handled already. Find the next
+			// larger one:
+			for (m = maxInt, j = 0; j < inputLength; ++j) {
+				currentValue = input[j];
+				if (currentValue >= n && currentValue < m) {
+					m = currentValue;
+				}
+			}
+
+			// Increase `delta` enough to advance the decoder's <n,i> state to <m,0>,
+			// but guard against overflow
+			handledCPCountPlusOne = handledCPCount + 1;
+			if (m - n > floor((maxInt - delta) / handledCPCountPlusOne)) {
+				error('overflow');
+			}
+
+			delta += (m - n) * handledCPCountPlusOne;
+			n = m;
+
+			for (j = 0; j < inputLength; ++j) {
+				currentValue = input[j];
+
+				if (currentValue < n && ++delta > maxInt) {
+					error('overflow');
+				}
+
+				if (currentValue == n) {
+					// Represent delta as a generalized variable-length integer
+					for (q = delta, k = base; /* no condition */; k += base) {
+						t = k <= bias ? tMin : (k >= bias + tMax ? tMax : k - bias);
+						if (q < t) {
+							break;
+						}
+						qMinusT = q - t;
+						baseMinusT = base - t;
+						output.push(
+							stringFromCharCode(digitToBasic(t + qMinusT % baseMinusT, 0))
+						);
+						q = floor(qMinusT / baseMinusT);
+					}
+
+					output.push(stringFromCharCode(digitToBasic(q, 0)));
+					bias = adapt(delta, handledCPCountPlusOne, handledCPCount == basicLength);
+					delta = 0;
+					++handledCPCount;
+				}
+			}
+
+			++delta;
+			++n;
+
+		}
+		return output.join('');
+	}
+
+	/**
+	 * Converts a Punycode string representing a domain name or an email address
+	 * to Unicode. Only the Punycoded parts of the input will be converted, i.e.
+	 * it doesn't matter if you call it on a string that has already been
+	 * converted to Unicode.
+	 * @memberOf punycode
+	 * @param {String} input The Punycoded domain name or email address to
+	 * convert to Unicode.
+	 * @returns {String} The Unicode representation of the given Punycode
+	 * string.
+	 */
+	function toUnicode(input) {
+		return mapDomain(input, function(string) {
+			return regexPunycode.test(string)
+				? decode(string.slice(4).toLowerCase())
+				: string;
+		});
+	}
+
+	/**
+	 * Converts a Unicode string representing a domain name or an email address to
+	 * Punycode. Only the non-ASCII parts of the domain name will be converted,
+	 * i.e. it doesn't matter if you call it with a domain that's already in
+	 * ASCII.
+	 * @memberOf punycode
+	 * @param {String} input The domain name or email address to convert, as a
+	 * Unicode string.
+	 * @returns {String} The Punycode representation of the given domain name or
+	 * email address.
+	 */
+	function toASCII(input) {
+		return mapDomain(input, function(string) {
+			return regexNonASCII.test(string)
+				? 'xn--' + encode(string)
+				: string;
+		});
+	}
+
+	/*--------------------------------------------------------------------------*/
+
+	/** Define the public API */
+	punycode = {
+		/**
+		 * A string representing the current Punycode.js version number.
+		 * @memberOf punycode
+		 * @type String
+		 */
+		'version': '1.4.1',
+		/**
+		 * An object of methods to convert from JavaScript's internal character
+		 * representation (UCS-2) to Unicode code points, and back.
+		 * @see <https://mathiasbynens.be/notes/javascript-encoding>
+		 * @memberOf punycode
+		 * @type Object
+		 */
+		'ucs2': {
+			'decode': ucs2decode,
+			'encode': ucs2encode
+		},
+		'decode': decode,
+		'encode': encode,
+		'toASCII': toASCII,
+		'toUnicode': toUnicode
+	};
+
+	/** Expose `punycode` */
+	// Some AMD build optimizers, like r.js, check for specific condition patterns
+	// like the following:
+	if (
+		typeof define == 'function' &&
+		typeof define.amd == 'object' &&
+		define.amd
+	) {
+		define('punycode', function() {
+			return punycode;
+		});
+	} else if (freeExports && freeModule) {
+		if (module.exports == freeExports) {
+			// in Node.js, io.js, or RingoJS v0.8.0+
+			freeModule.exports = punycode;
+		} else {
+			// in Narwhal or RingoJS v0.7.0-
+			for (key in punycode) {
+				punycode.hasOwnProperty(key) && (freeExports[key] = punycode[key]);
+			}
+		}
+	} else {
+		// in Rhino or a web browser
+		root.punycode = punycode;
+	}
+
+}(this));
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],368:[function(require,module,exports){
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+'use strict';
+
+// If obj.hasOwnProperty has been overridden, then calling
+// obj.hasOwnProperty(prop) will break.
+// See: https://github.com/joyent/node/issues/1707
+function hasOwnProperty(obj, prop) {
+  return Object.prototype.hasOwnProperty.call(obj, prop);
 }
 
-// Force a number between 0 and 1
-function clamp01(val) {
-    return mathMin(1, mathMax(0, val));
+module.exports = function(qs, sep, eq, options) {
+  sep = sep || '&';
+  eq = eq || '=';
+  var obj = {};
+
+  if (typeof qs !== 'string' || qs.length === 0) {
+    return obj;
+  }
+
+  var regexp = /\+/g;
+  qs = qs.split(sep);
+
+  var maxKeys = 1000;
+  if (options && typeof options.maxKeys === 'number') {
+    maxKeys = options.maxKeys;
+  }
+
+  var len = qs.length;
+  // maxKeys <= 0 means that we should not limit keys count
+  if (maxKeys > 0 && len > maxKeys) {
+    len = maxKeys;
+  }
+
+  for (var i = 0; i < len; ++i) {
+    var x = qs[i].replace(regexp, '%20'),
+        idx = x.indexOf(eq),
+        kstr, vstr, k, v;
+
+    if (idx >= 0) {
+      kstr = x.substr(0, idx);
+      vstr = x.substr(idx + 1);
+    } else {
+      kstr = x;
+      vstr = '';
+    }
+
+    k = decodeURIComponent(kstr);
+    v = decodeURIComponent(vstr);
+
+    if (!hasOwnProperty(obj, k)) {
+      obj[k] = v;
+    } else if (isArray(obj[k])) {
+      obj[k].push(v);
+    } else {
+      obj[k] = [obj[k], v];
+    }
+  }
+
+  return obj;
+};
+
+var isArray = Array.isArray || function (xs) {
+  return Object.prototype.toString.call(xs) === '[object Array]';
+};
+
+},{}],369:[function(require,module,exports){
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+'use strict';
+
+var stringifyPrimitive = function(v) {
+  switch (typeof v) {
+    case 'string':
+      return v;
+
+    case 'boolean':
+      return v ? 'true' : 'false';
+
+    case 'number':
+      return isFinite(v) ? v : '';
+
+    default:
+      return '';
+  }
+};
+
+module.exports = function(obj, sep, eq, name) {
+  sep = sep || '&';
+  eq = eq || '=';
+  if (obj === null) {
+    obj = undefined;
+  }
+
+  if (typeof obj === 'object') {
+    return map(objectKeys(obj), function(k) {
+      var ks = encodeURIComponent(stringifyPrimitive(k)) + eq;
+      if (isArray(obj[k])) {
+        return map(obj[k], function(v) {
+          return ks + encodeURIComponent(stringifyPrimitive(v));
+        }).join(sep);
+      } else {
+        return ks + encodeURIComponent(stringifyPrimitive(obj[k]));
+      }
+    }).join(sep);
+
+  }
+
+  if (!name) return '';
+  return encodeURIComponent(stringifyPrimitive(name)) + eq +
+         encodeURIComponent(stringifyPrimitive(obj));
+};
+
+var isArray = Array.isArray || function (xs) {
+  return Object.prototype.toString.call(xs) === '[object Array]';
+};
+
+function map (xs, f) {
+  if (xs.map) return xs.map(f);
+  var res = [];
+  for (var i = 0; i < xs.length; i++) {
+    res.push(f(xs[i], i));
+  }
+  return res;
 }
 
-// Parse a base-16 hex value into a base-10 integer
-function parseIntFromHex(val) {
-    return parseInt(val, 16);
-}
-
-// Need to handle 1.0 as 100%, since once it is a number, there is no difference between it and 1
-// <http://stackoverflow.com/questions/7422072/javascript-how-to-detect-number-as-a-decimal-including-1-0>
-function isOnePointZero(n) {
-    return typeof n == "string" && n.indexOf('.') != -1 && parseFloat(n) === 1;
-}
-
-// Check to see if string passed in is a percentage
-function isPercentage(n) {
-    return typeof n === "string" && n.indexOf('%') != -1;
-}
-
-// Force a hex value to have 2 characters
-function pad2(c) {
-    return c.length == 1 ? '0' + c : '' + c;
-}
-
-// Replace a decimal with it's percentage value
-function convertToPercentage(n) {
-    if (n <= 1) {
-        n = (n * 100) + "%";
-    }
-
-    return n;
-}
-
-// Converts a decimal to a hex value
-function convertDecimalToHex(d) {
-    return Math.round(parseFloat(d) * 255).toString(16);
-}
-// Converts a hex value to a decimal
-function convertHexToDecimal(h) {
-    return (parseIntFromHex(h) / 255);
-}
-
-var matchers = (function() {
-
-    // <http://www.w3.org/TR/css3-values/#integers>
-    var CSS_INTEGER = "[-\\+]?\\d+%?";
-
-    // <http://www.w3.org/TR/css3-values/#number-value>
-    var CSS_NUMBER = "[-\\+]?\\d*\\.\\d+%?";
-
-    // Allow positive/negative integer/number.  Don't capture the either/or, just the entire outcome.
-    var CSS_UNIT = "(?:" + CSS_NUMBER + ")|(?:" + CSS_INTEGER + ")";
-
-    // Actual matching.
-    // Parentheses and commas are optional, but not required.
-    // Whitespace can take the place of commas or opening paren
-    var PERMISSIVE_MATCH3 = "[\\s|\\(]+(" + CSS_UNIT + ")[,|\\s]+(" + CSS_UNIT + ")[,|\\s]+(" + CSS_UNIT + ")\\s*\\)?";
-    var PERMISSIVE_MATCH4 = "[\\s|\\(]+(" + CSS_UNIT + ")[,|\\s]+(" + CSS_UNIT + ")[,|\\s]+(" + CSS_UNIT + ")[,|\\s]+(" + CSS_UNIT + ")\\s*\\)?";
-
-    return {
-        CSS_UNIT: new RegExp(CSS_UNIT),
-        rgb: new RegExp("rgb" + PERMISSIVE_MATCH3),
-        rgba: new RegExp("rgba" + PERMISSIVE_MATCH4),
-        hsl: new RegExp("hsl" + PERMISSIVE_MATCH3),
-        hsla: new RegExp("hsla" + PERMISSIVE_MATCH4),
-        hsv: new RegExp("hsv" + PERMISSIVE_MATCH3),
-        hsva: new RegExp("hsva" + PERMISSIVE_MATCH4),
-        hex3: /^#?([0-9a-fA-F]{1})([0-9a-fA-F]{1})([0-9a-fA-F]{1})$/,
-        hex6: /^#?([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})$/,
-        hex4: /^#?([0-9a-fA-F]{1})([0-9a-fA-F]{1})([0-9a-fA-F]{1})([0-9a-fA-F]{1})$/,
-        hex8: /^#?([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})$/
-    };
-})();
-
-// `isValidCSSUnit`
-// Take in a single string / number and check to see if it looks like a CSS unit
-// (see `matchers` above for definition).
-function isValidCSSUnit(color) {
-    return !!matchers.CSS_UNIT.exec(color);
-}
-
-// `stringInputToObject`
-// Permissive string parsing.  Take in a number of formats, and output an object
-// based on detected format.  Returns `{ r, g, b }` or `{ h, s, l }` or `{ h, s, v}`
-function stringInputToObject(color) {
-
-    color = color.replace(trimLeft,'').replace(trimRight, '').toLowerCase();
-    var named = false;
-    if (names[color]) {
-        color = names[color];
-        named = true;
-    }
-    else if (color == 'transparent') {
-        return { r: 0, g: 0, b: 0, a: 0, format: "name" };
-    }
-
-    // Try to match string input using regular expressions.
-    // Keep most of the number bounding out of this function - don't worry about [0,1] or [0,100] or [0,360]
-    // Just return an object and let the conversion functions handle that.
-    // This way the result will be the same whether the tinycolor is initialized with string or object.
-    var match;
-    if ((match = matchers.rgb.exec(color))) {
-        return { r: match[1], g: match[2], b: match[3] };
-    }
-    if ((match = matchers.rgba.exec(color))) {
-        return { r: match[1], g: match[2], b: match[3], a: match[4] };
-    }
-    if ((match = matchers.hsl.exec(color))) {
-        return { h: match[1], s: match[2], l: match[3] };
-    }
-    if ((match = matchers.hsla.exec(color))) {
-        return { h: match[1], s: match[2], l: match[3], a: match[4] };
-    }
-    if ((match = matchers.hsv.exec(color))) {
-        return { h: match[1], s: match[2], v: match[3] };
-    }
-    if ((match = matchers.hsva.exec(color))) {
-        return { h: match[1], s: match[2], v: match[3], a: match[4] };
-    }
-    if ((match = matchers.hex8.exec(color))) {
-        return {
-            r: parseIntFromHex(match[1]),
-            g: parseIntFromHex(match[2]),
-            b: parseIntFromHex(match[3]),
-            a: convertHexToDecimal(match[4]),
-            format: named ? "name" : "hex8"
-        };
-    }
-    if ((match = matchers.hex6.exec(color))) {
-        return {
-            r: parseIntFromHex(match[1]),
-            g: parseIntFromHex(match[2]),
-            b: parseIntFromHex(match[3]),
-            format: named ? "name" : "hex"
-        };
-    }
-    if ((match = matchers.hex4.exec(color))) {
-        return {
-            r: parseIntFromHex(match[1] + '' + match[1]),
-            g: parseIntFromHex(match[2] + '' + match[2]),
-            b: parseIntFromHex(match[3] + '' + match[3]),
-            a: convertHexToDecimal(match[4] + '' + match[4]),
-            format: named ? "name" : "hex8"
-        };
-    }
-    if ((match = matchers.hex3.exec(color))) {
-        return {
-            r: parseIntFromHex(match[1] + '' + match[1]),
-            g: parseIntFromHex(match[2] + '' + match[2]),
-            b: parseIntFromHex(match[3] + '' + match[3]),
-            format: named ? "name" : "hex"
-        };
-    }
-
-    return false;
-}
-
-function validateWCAG2Parms(parms) {
-    // return valid WCAG2 parms for isReadable.
-    // If input parms are invalid, return {"level":"AA", "size":"small"}
-    var level, size;
-    parms = parms || {"level":"AA", "size":"small"};
-    level = (parms.level || "AA").toUpperCase();
-    size = (parms.size || "small").toLowerCase();
-    if (level !== "AA" && level !== "AAA") {
-        level = "AA";
-    }
-    if (size !== "small" && size !== "large") {
-        size = "small";
-    }
-    return {"level":level, "size":size};
-}
-
-// Node: Export function
-if (typeof module !== "undefined" && module.exports) {
-    module.exports = tinycolor;
-}
-// AMD/requirejs: Define the module
-else if (typeof define === 'function' && define.amd) {
-    define(function () {return tinycolor;});
-}
-// Browser: Expose to window
-else {
-    window.tinycolor = tinycolor;
-}
-
-})(Math);
+var objectKeys = Object.keys || function (obj) {
+  var res = [];
+  for (var key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) res.push(key);
+  }
+  return res;
+};
 
 },{}],370:[function(require,module,exports){
+'use strict';
+
+exports.decode = exports.parse = require('./decode');
+exports.encode = exports.stringify = require('./encode');
+
+},{"./decode":368,"./encode":369}],371:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -59134,7 +58936,7 @@ Url.prototype.parseHost = function() {
   if (host) this.hostname = host;
 };
 
-},{"./util":371,"punycode":358,"querystring":361}],371:[function(require,module,exports){
+},{"./util":372,"punycode":367,"querystring":370}],372:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -59152,1325 +58954,4 @@ module.exports = {
   }
 };
 
-},{}],372:[function(require,module,exports){
-// angle.js <https://github.com/davidfig/anglejs>
-// Released under MIT license <https://github.com/davidfig/angle/blob/master/LICENSE>
-// Author: David Figatner
-// Copyright (c) 2016-17 YOPEY YOPEY LLC
-
-const _toDegreeConversion = 180 / Math.PI
-const _toRadianConversion = Math.PI / 180
-
-
-/** @constant {number} */
-const UP = Math.PI / 2
-const DOWN = 3 * Math.PI / 2
-const LEFT = Math.PI
-const RIGHT = 0
-
-const NORTH = UP
-const SOUTH = DOWN
-const WEST = LEFT
-const EAST = RIGHT
-
-const PI_2 = Math.PI * 2
-const PI_QUARTER = Math.PI / 4
-const PI_HALF = Math.PI / 2
-
-/**
- * converts from radians to degrees (all other functions expect radians)
- * @param {number} radians
- * @return {number} degrees
- */
-function toDegrees(radians)
-{
-    return radians * _toDegreeConversion
-}
-
-/**
- * converts from degrees to radians (all other functions expect radians)
- * @param {number} degrees
- * @return {number} radians
- */
-function toRadians(degrees)
-{
-    return degrees * _toRadianConversion
-}
-
-/**
- * returns whether the target angle is between angle1 and angle2 (in radians)
- * (based on: http://stackoverflow.com/questions/11406189/determine-if-angle-lies-between-2-other-angles)
- * @param {number} target angle
- * @param {number} angle1
- * @param {number} angle2
- * @return {boolean}
- */
-function isAngleBetween(target, angle1, angle2)
-{
-    const rAngle = ((angle2 - angle1) % PI_2 + PI_2) % PI_2
-    if (rAngle >= Math.PI)
-    {
-        const swap = angle1
-        angle1 = angle2
-        angle2 = swap
-    }
-
-    if (angle1 <= angle2)
-    {
-        return target >= angle1 && target <= angle2
-    }
-    else
-    {
-        return target >= angle1 || target <= angle2
-    }
-}
-
-/**
- * returns +1 or -1 based on whether the difference between two angles is positive or negative (in radians)
- * @param {number} target angle
- * @param {number} source angle
- * @return {number} 1 or -1
- */
-function differenceAnglesSign(target, source)
-{
-    function mod(a, n)
-    {
-        return (a % n + n) % n
-    }
-
-    const a = target - source
-    return mod((a + Math.PI), PI_2) - Math.PI > 0 ? 1 : -1
-}
-
-/**
- * returns the normalized difference between two angles (in radians)
- * @param {number} a - first angle
- * @param {number} b - second angle
- * @return {number} normalized difference between a and b
- */
-function differenceAngles(a, b)
-{
-    const c = Math.abs(a - b) % PI_2
-    return c > Math.PI ? (PI_2 - c) : c
-}
-
-/**
- * returns a target angle that is the shortest way to rotate an object between start and to--may choose a negative angle
- * @param {number} start
- * @param {number} to
- * @return {number} shortest target angle
- */
-function shortestAngle(start, to)
-{
-    const difference = differenceAngles(to, start)
-    const sign = differenceAnglesSign(to, start)
-    const delta = difference * sign
-    return delta + start
-}
-
-/**
- * returns the normalized angle (0 - PI x 2)
- * @param {number} radians
- * @return {number} normalized angle in radians
- */
-function normalize(radians)
-{
-    return radians - PI_2 * Math.floor(radians / PI_2)
-}
-
-/**
- * returns angle between two points (in radians)
- * @param {Point} [point1] {x: x, y: y}
- * @param {Point} [point2] {x: x, y: y}
- * @param {number} [x1]
- * @param {number} [y1]
- * @param {number} [x2]
- * @param {number} [y2]
- * @return {number} angle
- */
-function angleTwoPoints(/* (point1, point2) OR (x1, y1, x2, y2) */)
-{
-    if (arguments.length === 4)
-    {
-        return Math.atan2(arguments[3] - arguments[1], arguments[2] - arguments[0])
-    }
-    else
-    {
-        return Math.atan2(arguments[1].y - arguments[0].y, arguments[1].x - arguments[0].x)
-    }
-}
-
-/**
- * returns distance between two points
- * @param {Point} [point1] {x: x, y: y}
- * @param {Point} [point2] {x: x, y: y}
- * @param {number} [x1]
- * @param {number} [y1]
- * @param {number} [x2]
- * @param {number} [y2]
- * @return {number} distance
- */
-function distanceTwoPoints(/* (point1, point2) OR (x1, y1, x2, y2) */)
-{
-    if (arguments.length === 2)
-    {
-        return Math.sqrt(Math.pow(arguments[1].x - arguments[0].x, 2) + Math.pow(arguments[1].y - arguments[0].y, 2))
-    }
-    else
-    {
-        return Math.sqrt(Math.pow(arguments[2] - arguments[0], 2) + Math.pow(arguments[3] - arguments[1], 2))
-    }
-}
-
-/**
- * returns the squared distance between two points
- * @param {Point} [point1] {x: x, y: y}
- * @param {Point} [point2] {x: x, y: y}
- * @param {number} [x1]
- * @param {number} [y1]
- * @param {number} [x2]
- * @param {number} [y2]
- * @return {number} squared distance
- */
-function distanceTwoPointsSquared(/* (point1, point2) OR (x1, y1, x2, y2) */)
-{
-    if (arguments.length === 2)
-    {
-        return Math.pow(arguments[1].x - arguments[0].x, 2) + Math.pow(arguments[1].y - arguments[0].y, 2)
-    }
-    else
-    {
-        return Math.pow(arguments[2] - arguments[0], 2) + Math.pow(arguments[3] - arguments[1], 2)
-    }
-}
-
-/**
- * returns the closest cardinal (N, S, E, W) to the given angle (in radians)
- * @param {number} angle
- * @return {number} closest cardinal in radians
- */
-function closestAngle(angle)
-{
-    const left = differenceAngles(angle, LEFT)
-    const right = differenceAngles(angle, RIGHT)
-    const up = differenceAngles(angle, UP)
-    const down = differenceAngles(angle, DOWN)
-    if (left <= right && left <= up && left <= down)
-    {
-        return LEFT
-    }
-    else if (right <= up && right <= down)
-    {
-        return RIGHT
-    }
-    else if (up <= down)
-    {
-        return UP
-    }
-    else
-    {
-        return DOWN
-    }
-}
-
-/**
- * checks whether angles a1 and a2 are equal (after normalizing)
- * @param {number} a1
- * @param {number} a2
- * @param {number} [wiggle] return true if the difference between the angles is <= wiggle
- * @return {boolean} a1 === a2
- */
-function equals(a1, a2, wiggle)
-{
-    if (wiggle)
-    {
-        return differenceAngles(a1, a2) < wiggle
-    }
-    else
-    {
-        return normalize(a1) === normalize(a2)
-    }
-}
-
-/**
- * return a text representation of the cardinal direction
- * @param {number} angle
- * @returns {string} UP, DOWN, LEFT, RIGHT, or NOT CARDINAL
- */
-function explain(angle)
-{
-    switch (angle)
-    {
-        case UP: return 'UP'
-        case DOWN: return 'DOWN'
-        case LEFT: return 'LEFT'
-        case RIGHT: return 'RIGHT'
-        default: return 'NOT CARDINAL'
-    }
-}
-
-module.exports = {
-    UP, DOWN, LEFT, RIGHT,
-    NORTH, SOUTH, WEST, EAST,
-    PI_2, PI_QUARTER, PI_HALF,
-
-    toDegrees,
-    toRadians,
-    isAngleBetween,
-    differenceAnglesSign,
-    differenceAngles,
-    shortestAngle,
-    normalize,
-    angleTwoPoints,
-    distanceTwoPoints,
-    distanceTwoPointsSquared,
-    closestAngle,
-    equals,
-    explain
-}
-},{}],373:[function(require,module,exports){
-// yy-counter
-// In-browser counter to watch changeable values like counters or FPS
-// David Figatner
-// (c) YOPEY YOPEY LLC 2017
-// MIT License
-// https://github.com/davidfig/counter
-
-module.exports = class Counter
-{
-    /**
-     * @param {object} [options]
-     * @param {string} [options.side=rightbottom] side to place the panel (combination of right/left and bottom/top)
-     * @param {number} [options.padding=7px]
-     * @param {string} [options.color=white]
-     * @param {string} [options.background=rgba(0,0,0,0.5)]
-     * @param {*} {options.xxx} where xxx is a CSS style for the div
-     */
-    constructor(options)
-    {
-        options = options || {}
-        options.side = options.side || 'rightbottom'
-        options.side.toLowerCase()
-        options.padding = options.padding || '7px'
-        options.color = options.color || 'white'
-        options.background = options.background || 'rgba(0,0,0,0.5)'
-        this.div = document.createElement('div')
-        Counter.findParent(options.side).appendChild(this.div)
-        for (let style in options)
-        {
-            if (style !== 'parent' && style !== 'side')
-            {
-                this.div.style[style] = options[style]
-            }
-        }
-    }
-
-    /**
-     * find the parent div for one of the corners
-     * @param {string} [options.side] side to place the panel (combination of right/left and bottom/top)
-     * @return {HTMLElement}
-     */
-    static findParent(side)
-    {
-        const styles = []
-        let name = 'yy-counter-'
-        if (side.indexOf('left') !== -1)
-        {
-            name += 'left-'
-            styles['left'] = 0
-        }
-        else
-        {
-            name += 'right-'
-            styles['right'] = 0
-        }
-        if (side.indexOf('top') !== -1)
-        {
-            name += 'top'
-            styles['top'] = 0
-        }
-        else
-        {
-            name += 'bottom'
-            styles['bottom'] = 0
-        }
-        const test = document.getElementById(name)
-        if (test)
-        {
-            return test
-        }
-        const container = document.createElement('div')
-        container.id = name
-        container.style.overflow = 'hidden'
-        container.style.position = 'fixed'
-        container.style.zIndex = 10000
-        container.style.pointerEvents = 'none'
-        container.style.userSelect = 'none'
-        for (let style in styles)
-        {
-            container.style[style] = styles[style]
-        }
-        document.body.appendChild(container)
-        return container
-    }
-
-    /**
-     * replaces the innerHTML of the console
-     * @param {string|number} text1
-     * @param {string|number} [text2]
-     * @param {string|number} [...textn] any number of arguments
-     */
-    log()
-    {
-        let s = ''
-        for (let arg of arguments)
-        {
-            s += '<div>' + arg + '</div>'
-        }
-        this.div.innerHTML =  s
-    }
-
-    /**
-     * appends to the innerHTML of the console
-     * @param {string|number} text1
-     * @param {string|number} [text2]
-     * @param {string|number} [...textn] any number of arguments
-     */
-    append()
-    {
-        let s = this.div.innerHTML
-        for (let arg of arguments)
-        {
-            s += '<div>' + arg + '</div>'
-        }
-        this.div.innerHTML = s
-    }
-}
-},{}],374:[function(require,module,exports){
-'use strict';
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var Color = require('tinycolor2');
-var Counter = require('yy-counter');
-
-var STYLES = {
-    'background': 'rgba(0, 0, 0, 0.5)',
-    'color': 'white'
-};
-
-var STYLES_FPS = {
-    'padding': '0.1em 0.5em'
-};
-
-var STYLES_METER = {};
-
-module.exports = function () {
-    /**
-     * @param {object} [options]
-     * @param {boolean} [options.meter=true] include a meter with the FPS
-     * @param {string} [options.side=bottom-right] include any combination of left/right and top/bottom
-     * @param {number} [options.FPS=60] desired FPS
-     * @param {number} [options.tolerance=1] minimum tolerance for fluctuations in FPS number
-     * @param {number} [options.meterWidth=100] width of meter div
-     * @param {number} [options.meterHeight=25] height of meter div
-     * @param {number} [options.meterLineHeight=4] height of meter line
-     * @param {styles[]} [options.styles] CSS styles to apply to the div (in javascript format)
-     * @param {styles[]} [options.stylesFPS] CSS styles to apply to the FPS text (in javascript format)
-     * @param {styles[]} [options.stylesMeter] CSS styles to apply to the FPS meter (in javascript format)
-     * @param {string} [options.text=" FPS"] change the text to the right of the FPS
-     */
-    function FPS(options) {
-        _classCallCheck(this, FPS);
-
-        this.options = options || {};
-        this.tolerance = this.options.tolerance || 1;
-        this.FPS = this.options.FPS || 60;
-        this.meterWidth = this.options.meterWidth || 100;
-        this.meterHeight = this.options.meterHeight || 25;
-        this.meterLineHeight = this.options.meterLineHeight || 4;
-        this.div = document.createElement('div');
-        Counter.findParent(this.options.side || 'bottom-right').appendChild(this.div);
-        this.style(this.div, STYLES, this.options.styles);
-        this.divFPS();
-        this.meter = typeof this.options.meter === 'undefined' || this.options.meter;
-        this.lastTime = 0;
-        this.frameNumber = 0;
-        this.lastUpdate = 0;
-        this.lastFPS = '--';
-    }
-
-    /**
-     * change desired FPS
-     * @type {number}
-     */
-
-
-    _createClass(FPS, [{
-        key: 'remove',
-
-
-        /**
-         * remove meter from DOM
-         */
-        value: function remove() {
-            this.div.remove();
-        }
-
-        /**
-         * @type {boolean} meter (the FPS graph) is on or off
-         */
-
-    }, {
-        key: 'style',
-        value: function style(div, style1, style2) {
-            for (var style in style1) {
-                div.style[style] = style1[style];
-            }
-            if (style2) {
-                for (var _style in style2) {
-                    div.style[_style] = style2[_style];
-                }
-            }
-        }
-
-        /**
-         * create div for text FPS
-         * @private
-         * @param {HTMLElement} div
-         * @param {object} options (see contructor)
-         */
-
-    }, {
-        key: 'divFPS',
-        value: function divFPS() {
-            var div = this.div;
-            var options = this.options;
-            var divFPS = document.createElement('div');
-            div.appendChild(divFPS);
-            this.fpsSpan = document.createElement('span');
-            divFPS.appendChild(this.fpsSpan);
-            var span = document.createElement('span');
-            divFPS.appendChild(span);
-            span.innerText = typeof options.text !== 'undefined' ? options.text : ' FPS';
-            this.style(div, STYLES_FPS, options.stylesFPS);
-        }
-
-        /**
-         * create div for FPS meter
-         * @private
-         * @param {HTMLElement} div
-         * @param {object} options (see contructor)
-         */
-
-    }, {
-        key: 'divMeter',
-        value: function divMeter() {
-            var div = this.div;
-            var options = this.options;
-            if (!this.meterCanvas) {
-                this.meterCanvas = document.createElement('canvas');
-                div.appendChild(this.meterCanvas);
-                this.meterCanvas.width = this.meterWidth;
-                this.meterCanvas.height = this.meterHeight;
-                this.meterCanvas.style.width = div.width + 'px';
-                this.meterCanvas.style.height = div.height + 'px';
-                this.style(this.meterCanvas, STYLES_METER, options.stylesMeter);
-            } else {
-                this.meterCanvas.style.display = 'block';
-            }
-        }
-
-        /**
-         * call this at the start of the frame to calculate FPS
-         */
-
-    }, {
-        key: 'frame',
-        value: function frame() {
-            this.frameNumber++;
-            var currentTime = performance.now() - this.lastTime;
-
-            // skip large differences to remove garbage
-            if (currentTime > 500) {
-                if (this.lastTime !== 0) {
-                    this.lastFPS = Math.floor(this.frameNumber / (currentTime / 1000));
-                    if (this.lastFPS >= this.FPS - this.tolerance && this.lastFPS <= this.FPS + this.tolerance) {
-                        this.lastFPS = this.FPS;
-                    }
-                }
-                this.lastTime = performance.now();
-                this.frameNumber = 0;
-            }
-            this.fpsSpan.innerText = this.lastFPS;
-            if (this.meterCanvas && this.lastFPS !== '--') {
-                this.meterUpdate(this.lastFPS / this.FPS);
-            }
-        }
-    }, {
-        key: 'meterUpdate',
-        value: function meterUpdate(percent) {
-            var c = this.meterCanvas.getContext('2d');
-            var data = c.getImageData(0, 0, this.meterCanvas.width, this.meterCanvas.height);
-            c.putImageData(data, -1, 0);
-            c.clearRect(this.meterCanvas.width - 1, 0, 1, this.meterCanvas.height);
-            if (percent < 0.5) {
-                c.fillStyle = Color.mix('#ff0000', '0xffa500', percent * 200).toHexString();
-            } else {
-                c.fillStyle = Color.mix('#ffa500', '#00ff00', (percent - 0.5) * 200).toHexString();
-            }
-            var height = (this.meterCanvas.height - this.meterLineHeight) * (1 - percent);
-            c.fillRect(this.meterCanvas.width - 1, height, 1, this.meterLineHeight);
-        }
-    }, {
-        key: 'side',
-        value: function side(options) {
-            if (options.side) {
-                options.side = options.side.toLowerCase();
-                if (options.side.indexOf('left') !== -1) {
-                    STYLES['left'] = 0;
-                    delete STYLES['right'];
-                } else {
-                    STYLES['right'] = 0;
-                    delete STYLES['left'];
-                }
-                if (options.side.indexOf('top') !== -1) {
-                    STYLES['top'] = 0;
-                    delete STYLES['bottom'];
-                } else {
-                    STYLES['bottom'] = 0;
-                    delete STYLES['top'];
-                }
-            } else {
-                STYLES['right'] = 0;
-                STYLES['bottom'] = 0;
-            }
-        }
-    }, {
-        key: 'fps',
-        get: function get() {
-            return this.FPS;
-        },
-        set: function set(value) {
-            this.FPS = value;
-        }
-    }, {
-        key: 'meter',
-        get: function get() {
-            return this._meter;
-        },
-        set: function set(value) {
-            if (value) {
-                this.divMeter();
-            } else if (this.meterCanvas) {
-                this.meterCanvas.style.display = 'none';
-            }
-        }
-    }]);
-
-    return FPS;
-}();
-
-},{"tinycolor2":369,"yy-counter":373}],375:[function(require,module,exports){
-const PIXI = require('pixi.js')
-const Angle = require('yy-angle')
-
-/**
- * pixi-pixelate: a container to create proper pixelated graphics
- */
-class Pixelate extends PIXI.Container
-{
-    constructor()
-    {
-        super()
-        this.cursor = { x: 0, y: 0 }
-        this.tint = 0xffffff
-        this._lineStyle = { width: 1, tint: 0xffffff, alpha: 1 }
-        this.cache = []
-    }
-
-    /**
-     * clear all graphics
-     */
-    clear()
-    {
-        while (this.children.length)
-        {
-            this.cache.push(this.children.pop())
-        }
-    }
-
-    /**
-     * texture to use for sprites (defaults to PIXI.Texture.WHITE)
-     * @type {PIXI.Texture}
-     */
-    static get texture()
-    {
-        return Pixelate._texture
-    }
-    static set texture(value)
-    {
-        Pixelate._texture = value
-    }
-
-    /**
-     * creates or gets an old sprite
-     * @param {number} tint
-     * @param {number} alpha
-     * @private
-     */
-    getPoint(tint, alpha)
-    {
-        let point
-        if (this.cache.length)
-        {
-            point = this.addChild(this.cache.pop())
-        }
-        else
-        {
-            point = this.addChild(new PIXI.Sprite(Pixelate.texture))
-        }
-        point.tint = typeof tint === 'undefined' ? this._lineStyle.tint : tint
-        point.alpha = typeof alpha === 'undefined' ? this._lineStyle.alpha : alpha
-        return point
-    }
-
-    /**
-     * draw a list of points
-     * @param {(number[]|PIXI.Point[]|PIXI.PointLike[])} points
-     * @param {number} tint
-     * @param {number} alpha
-     */
-    points(points, tint, alpha)
-    {
-        if (isNaN(points[0]))
-        {
-            for (let point of points)
-            {
-                this.point(point.x, point.y, tint, alpha)
-            }
-        }
-        else
-        {
-            for (let i = 0; i < points.length; i += 2)
-            {
-                this.point(points[i], points[i + 1], tint, alpha)
-            }
-        }
-    }
-
-    /**
-     * add a point using lineStyle or provided tint and alpha
-     * @param {number} x
-     * @param {number} y
-     * @param {number} [tint]
-     * @param {number} [alpha]
-     * @returns {Pixelate}
-     */
-    point(x, y, tint, alpha)
-    {
-        const point = this.getPoint(tint, alpha)
-        point.position.set(x, y)
-        point.width = point.height = 1
-        return this
-    }
-
-    /**
-     * set linestyle for pixelated layer
-     * NOTE: width only works for line() for now
-     * @param {number} width
-     * @param {number} [tint=0xffffff]
-     * @param {number} [alpha=1]
-     * @returns {Pixelate}
-     */
-    lineStyle(width, tint, alpha)
-    {
-        this._lineStyle.width = width
-        this._lineStyle.tint = typeof tint !== 'undefined' ? tint : 0xffffff
-        this._lineStyle.alpha = typeof alpha !== 'undefined' ? alpha : 1
-        return this
-    }
-
-    /**
-     * move cursor to this location
-     * @param {number} x
-     * @param {number} y
-     * @returns {Pixelate}
-     */
-    moveTo(x, y)
-    {
-        this.cursor.x = x
-        this.cursor.y = y
-        return this
-    }
-
-    /**
-     * draw a pixelated line between two points and move cursor to the second point
-     * @param {number} x0
-     * @param {number} y0
-     * @param {number} x1
-     * @param {number} y1
-     * @param {number} [tint]
-     * @param {number} [alpha]
-     * @param {number} [lineWidth]
-     * @returns {Pixelate}
-     */
-    line(x0, y0, x1, y1, tint, alpha, lineWidth)
-    {
-        lineWidth = typeof lineWidth === 'undefined' ? this._lineStyle.width : lineWidth
-        if (lineWidth === 1)
-        {
-            this.drawPoints(this.linePoints(x0, y0, x1, y1), tint, alpha)
-        }
-        else
-        {
-            const points = this.linePoints(x0, y0, x1, y1)
-            const angle = Angle.angleTwoPoints(x0, y0, x1, y1) - Math.PI / 2
-            const cos = Math.cos(angle)
-            const sin = Math.sin(angle)
-            for (let i = 0; i < lineWidth; i++)
-            {
-                this.linePoints(Math.round(x0 + cos * i), Math.round(y0 + sin * i), Math.round(x1 + cos * i), Math.round(y1 + sin * i), points)
-            }
-            this.drawPoints(points, tint, alpha)
-        }
-        return this
-    }
-
-    /**
-     * draw a pixelated line between two points and move cursor to the second point
-     * based on https://github.com/madbence/node-bresenham/blob/master/index.js
-     * @private
-     * @param {number} x0
-     * @param {number} y0
-     * @param {number} x1
-     * @param {number} y1
-     * @param {number[]} [points]
-     * @returns {number[]}
-     */
-    linePoints(x0, y0, x1, y1, points)
-    {
-        points = points || []
-        points.push([x0, y0])
-        var dx = x1 - x0;
-        var dy = y1 - y0;
-        var adx = Math.abs(dx);
-        var ady = Math.abs(dy);
-        var eps = 0;
-        var sx = dx > 0 ? 1 : -1;
-        var sy = dy > 0 ? 1 : -1;
-        if (adx > ady)
-        {
-            for (var x = x0, y = y0; sx < 0 ? x >= x1 : x <= x1; x += sx)
-            {
-                points.push([x, y])
-                eps += ady;
-                if ((eps << 1) >= adx)
-                {
-                    y += sy;
-                    eps -= adx;
-                }
-            }
-        } else
-        {
-            for (var x = x0, y = y0; sy < 0 ? y >= y1 : y <= y1; y += sy)
-            {
-                points.push([x, y])
-                eps += adx;
-                if ((eps << 1) >= ady)
-                {
-                    x += sx;
-                    eps -= ady;
-                }
-            }
-        }
-        return points
-    }
-
-    /**
-     * create a unique array
-     * from https://stackoverflow.com/a/9229821/1955997
-     * @private
-     * @param {Array} a
-     */
-    hashUnique(a)
-    {
-        const seen = {}
-        return a.filter((item) =>
-        {
-            const key = item[0] + '.' + item[1]
-            return seen.hasOwnProperty(key) ? false : (seen[key] = true)
-        })
-    }
-
-    /**
-     * draw a set of points, removing duplicates first
-     * @private
-     * @param {object[]}
-     */
-    drawPoints(points, tint, alpha)
-    {
-        points = this.hashUnique(points)
-        for (let point of points)
-        {
-            this.point(point[0], point[1], tint, alpha)
-        }
-    }
-
-    /**
-     * draw a pixelated line from the cursor position to this position
-     * @param {number} x
-     * @param {number} y
-     * @returns {Pixelate}
-     */
-    lineTo(x, y)
-    {
-        this.drawPoints(this.linePoints(this.cursor.x, this.cursor.y, x, y))
-        this.cursor.x = x
-        this.cursor.y = y
-        return this
-    }
-
-    /**
-     * draw a pixelated circle
-     * from https://en.wikipedia.org/wiki/Midpoint_circle_algorithm
-     * @param {number} x0
-     * @param {number} y0
-     * @param {number} radius
-     * @param {number} [tint]
-     * @param {number} [alpha]
-     * @returns {Pixelate}
-     */
-    circle(x0, y0, radius, tint, alpha)
-    {
-        const points = []
-        let x = radius
-        let y = 0
-        let decisionOver2 = 1 - x   // Decision criterion divided by 2 evaluated at x=r, y=0
-
-        while (x >= y)
-        {
-            points.push([x + x0, y + y0])
-            points.push([y + x0, x + y0])
-            points.push([-x + x0, y + y0])
-            points.push([-y + x0, x + y0])
-            points.push([-x + x0, -y + y0])
-            points.push([-y + x0, -x + y0])
-            points.push([x + x0, -y + y0])
-            points.push([y + x0, -x + y0])
-            y++
-            if (decisionOver2 <= 0)
-            {
-                decisionOver2 += 2 * y + 1 // Change in decision criterion for y -> y+1
-            } else
-            {
-                x--
-                decisionOver2 += 2 * (y - x) + 1 // Change for y -> y+1, x -> x-1
-            }
-        }
-        this.drawPoints(points, tint, alpha)
-        return this
-    }
-
-    /**
-     * draw and fill circle
-     * @param {number} x center
-     * @param {number} y center
-     * @param {number} radius
-     * @param {number} tint
-     * @param {number} alpha
-     */
-    circleFill(x0, y0, radius, tint, alpha)
-    {
-        const points = []
-        let x = radius
-        let y = 0
-        let decisionOver2 = 1 - x   // Decision criterion divided by 2 evaluated at x=r, y=0
-
-        while (x >= y)
-        {
-            this.rectPoints(-x + x0, y + y0, x * 2 + 1, 1, points)
-            this.rectPoints(-y + x0, x + y0, y * 2 + 1, 1, points)
-            this.rectPoints(-x + x0, -y + y0, x * 2 + 1, 1, points)
-            this.rectPoints(-y + x0, -x + y0, y * 2 + 1, 1, points)
-            y++
-            if (decisionOver2 <= 0)
-            {
-                decisionOver2 += 2 * y + 1 // Change in decision criterion for y -> y+1
-            } else
-            {
-                x--
-                decisionOver2 += 2 * (y - x) + 1 // Change for y -> y+1, x -> x-1
-            }
-        }
-
-        this.drawPoints(points, tint, alpha)
-        return this
-    }
-
-    /**
-     * return an array of points for a rect
-     * @private
-     * @param {number} x0
-     * @param {number} y0
-     * @param {number} width
-     * @param {number} height
-     * @param {number[]} [points]
-     * @returns {object[]}
-     */
-    rectPoints(x0, y0, width, height, points)
-    {
-        points = points || []
-        for (let y = y0; y < y0 + height; y++)
-        {
-            for (let x = x0; x < x0 + width; x++)
-            {
-                points.push([x, y])
-            }
-        }
-        return points
-    }
-
-    /**
-     * draw the outline of a rect
-     * @param {number} x
-     * @param {number} y
-     * @param {number} width
-     * @param {number} height
-     * @param {number} tint
-     * @param {number} alpha
-     * @return {Pixelate}
-     */
-    rect(x, y, width, height, tint, alpha)
-    {
-        if (width === 1)
-        {
-            const point = this.getPoint(tint, alpha)
-            point.position.set(x, y)
-            point.width = 1
-            point.height = height
-        }
-        else if (height === 1)
-        {
-            const point = this.getPoint(tint, alpha)
-            point.position.set(x, y)
-            point.width = 1
-            point.height = 1
-        }
-        else
-        {
-            const top = this.getPoint(tint, alpha)
-            top.position.set(x, y)
-            top.width = width + 1
-            top.height = 1
-            const bottom = this.getPoint(tint, alpha)
-            bottom.position.set(x, y + height)
-            bottom.width = width + 1
-            bottom.height = 1
-            const left = this.getPoint(tint, alpha)
-            left.position.set(x, y + 1)
-            left.width = 1
-            left.height = height - 1
-            const right = this.getPoint(tint, alpha)
-            right.position.set(x + width, y + 1)
-            right.width = 1
-            right.height = height - 1
-        }
-        return this
-    }
-
-    /**
-     * draw and fill rectangle
-     * @param {number} x
-     * @param {number} y
-     * @param {number} width
-     * @param {number} height
-     * @param {number} [tint]
-     * @param {number} [alpha]
-     * @returns {Pixelate}
-     */
-    rectFill(x, y, width, height, tint, alpha)
-    {
-        const point = this.getPoint(tint, alpha)
-        point.position.set(x, y)
-        point.width = width + 1
-        point.height = height + 1
-        return this
-    }
-
-    /**
-     * draw a pixelated ellipse
-     * from http://cfetch.blogspot.tw/2014/01/wap-to-draw-ellipse-using-midpoint.html
-     * @param {number} xc center
-     * @param {number} yc center
-     * @param {number} rx - radius x-axis
-     * @param {number} ry - radius y-axis
-     * @param {number} tint
-     * @param {number} alpha
-     * @returns {Pixelate}
-     */
-    ellipse(xc, yc, rx, ry, tint, alpha)
-    {
-        const points = []
-        let x = 0, y = ry
-        let p = (ry * ry) - (rx * rx * ry) + ((rx * rx) / 4)
-        while ((2 * x * ry * ry) < (2 * y * rx * rx))
-        {
-            points.push([xc + x, yc - y])
-            points.push([xc - x, yc + y])
-            points.push([xc + x, yc + y])
-            points.push([xc - x, yc - y])
-
-            if (p < 0)
-            {
-                x = x + 1
-                p = p + (2 * ry * ry * x) + (ry * ry)
-            }
-            else
-            {
-                x = x + 1
-                y = y - 1
-                p = p + (2 * ry * ry * x + ry * ry) - (2 * rx * rx * y)
-            }
-        }
-        p = (x + 0.5) * (x + 0.5) * ry * ry + (y - 1) * (y - 1) * rx * rx - rx * rx * ry * ry
-        while (y >= 0)
-        {
-            points.push([xc + x, yc - y])
-            points.push([xc - x, yc + y])
-            points.push([xc + x, yc + y])
-            points.push([xc - x, yc - y])
-            if (p > 0)
-            {
-                y = y - 1
-                p = p - (2 * rx * rx * y) + (rx * rx)
-            }
-            else
-            {
-                y = y - 1
-                x = x + 1
-                p = p + (2 * ry * ry * x) - (2 * rx * rx * y) - (rx * rx)
-            }
-        }
-        this.drawPoints(points, tint, alpha)
-        return this
-    }
-
-    /**
-     * draw and fill ellipse
-     * @param {number} xc - x-center
-     * @param {number} yc - y-center
-     * @param {number} rx - radius x-axis
-     * @param {number} ry - radius y-axis
-     * @param {number} tint
-     * @returns {Pixelate}
-     */
-    ellipseFill(xc, yc, rx, ry, tint, alpha)
-    {
-        const points = []
-        let x = 0, y = ry
-        let p = (ry * ry) - (rx * rx * ry) + ((rx * rx) / 4)
-        while ((2 * x * ry * ry) < (2 * y * rx * rx))
-        {
-            this.rectPoints(xc - x, yc - y, x * 2 + 1, 1, points)
-            this.rectPoints(xc - x, yc + y, x * 2 + 1, 1, points)
-            if (p < 0)
-            {
-                x = x + 1
-                p = p + (2 * ry * ry * x) + (ry * ry)
-            }
-            else
-            {
-                x = x + 1
-                y = y - 1
-                p = p + (2 * ry * ry * x + ry * ry) - (2 * rx * rx * y)
-            }
-        }
-        p = (x + 0.5) * (x + 0.5) * ry * ry + (y - 1) * (y - 1) * rx * rx - rx * rx * ry * ry
-        while (y >= 0)
-        {
-            this.rectPoints(xc - x, yc - y, x * 2 + 1, 1, points)
-            this.rectPoints(xc - x, yc + y, x * 2 + 1, 1, points)
-            if (p > 0)
-            {
-                y = y - 1
-                p = p - (2 * rx * rx * y) + (rx * rx)
-            }
-            else
-            {
-                y = y - 1
-                x = x + 1
-                p = p + (2 * ry * ry * x) - (2 * rx * rx * y) - (rx * rx)
-            }
-        }
-        this.drawPoints(points, tint, alpha)
-        return this
-    }
-
-    /**
-     * draw a pixelated polygon
-     * @param {number[]} vertices
-     * @param {number} tint
-     * @param {number} alpha
-     * @returns {Pixelate}
-     */
-    polygon(vertices, tint, alpha)
-    {
-        const points = []
-        for (let i = 2; i < vertices.length; i += 2)
-        {
-            this.linePoints(vertices[i - 2], vertices[i - 1], vertices[i], vertices[i + 1], points)
-        }
-        if (vertices[vertices.length - 2] !== vertices[0] || vertices[vertices.length - 1] !== vertices[1])
-        {
-            this.linePoints(vertices[vertices.length - 2], vertices[vertices.length - 1], vertices[0], vertices[1], points)
-        }
-        this.drawPoints(points, tint, alpha)
-    }
-
-    /**
-     * draw and fill pixelated polygon
-     * @param {number[]} vertices
-     * @param {number} tint
-     * @param {number} alpha
-     * @returns {Pixelate}
-     */
-    polygonFill(vertices, tint, alpha)
-    {
-        function mod(n, m)
-        {
-            return ((n % m) + m) % m
-        }
-
-        const points = []
-        const edges = [], active = []
-        let minY = Infinity, maxY = 0
-
-        for (let i = 0; i < vertices.length; i += 2)
-        {
-            const p1 = { x: vertices[i], y: vertices[i + 1] }
-            const p2 = { x: vertices[mod(i + 2, vertices.length)], y: vertices[mod(i + 3, vertices.length)] }
-            if (p1.y - p2.y !== 0)
-            {
-                const edge = {}
-                edge.p1 = p1
-                edge.p2 = p2
-                if (p1.y < p2.y)
-                {
-                    edge.minY = p1.y
-                    edge.minX = p1.x
-                }
-                else
-                {
-                    edge.minY = p2.y
-                    edge.minX = p2.x
-                }
-                minY = (edge.minY < minY) ? edge.minY : minY
-                edge.maxY = Math.max(p1.y, p2.y)
-                maxY = (edge.maxY > maxY) ? edge.maxY : maxY
-                if (p1.x - p2.x === 0)
-                {
-                    edge.slope = Infinity
-                    edge.b = p1.x
-                }
-                else
-                {
-                    edge.slope = (p1.y - p2.y) / (p1.x - p2.x)
-                    edge.b = p1.y - edge.slope * p1.x
-                }
-                edges.push(edge)
-            }
-        }
-        edges.sort((a, b) => { return a.minY - b.minY })
-        for (let y = minY; y <= maxY; y++)
-        {
-            for (let i = 0; i < edges.length; i++)
-            {
-                const edge = edges[i]
-                if (edge.minY === y)
-                {
-                    active.push(edge)
-                    edges.splice(i, 1)
-                    i--
-                }
-            }
-            for (let i = 0; i < active.length; i++)
-            {
-                const edge = active[i]
-                if (edge.maxY < y)
-                {
-                    active.splice(i, 1)
-                    i--
-                }
-                else
-                {
-                    if (edge.slope !== Infinity)
-                    {
-                        edge.x = Math.round((y - edge.b) / edge.slope)
-                    }
-                    else
-                    {
-                        edge.x = edge.b
-                    }
-                }
-            }
-            active.sort((a, b) => { return a.x - b.x === 0 ? b.maxY - a.maxY : a.x - b.x })
-            let bit = true, current = 1
-            for (let x = active[0].x; x <= active[active.length - 1].x; x++)
-            {
-                if (bit)
-                {
-                    points.push([x, y])
-                }
-                if (active[current].x === x)
-                {
-                    if (active[current].maxY !== y)
-                    {
-                        bit = !bit
-                    }
-                    current++
-                }
-            }
-        }
-        this.drawPoints(points, tint, alpha)
-        return this
-    }
-
-    /**
-     * draw arc
-     * @param {number} x0 - x-start
-     * @param {number} y0 - y-start
-     * @param {number} radius - radius
-     * @param {number} start angle (radians)
-     * @param {number} end angle (radians)
-     * @param {number} tint
-     * @param {number} alpha
-     * @returns {Pixelate}
-     */
-    arc(x0, y0, radius, start, end, tint, alpha)
-    {
-        const interval = Math.PI / radius / 4
-        const points = []
-        for (let i = start; i <= end; i += interval)
-        {
-            points.push([Math.floor(x0 + Math.cos(i) * radius), Math.floor(y0 + Math.sin(i) * radius)])
-        }
-        this.drawPoints(points, tint, alpha)
-        return this
-    }
-
-    /**
-     * empties cache of old sprites
-     */
-    flush()
-    {
-        this.cache = []
-    }
-}
-
-Pixelate._texture = PIXI.Texture.WHITE
-
-module.exports = Pixelate
-},{"pixi.js":321,"yy-angle":372}]},{},[1]);
+},{}]},{},[1]);

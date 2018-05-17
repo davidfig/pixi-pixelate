@@ -1,9 +1,8 @@
 const PIXI = require('pixi.js')
-const FPS = require('yy-fps')
 
 const Pixelate = require('../src/pixelate')
 
-let _renderer, _fps, g
+let _renderer, g
 
 function test()
 {
@@ -55,7 +54,6 @@ function resize()
 
 window.onload = function ()
 {
-    _fps = new FPS({ side: 'bottom-left' })
     _renderer = new PIXI.Application({ transparent: true, width: window.innerWidth, height: window.innerHeight, resolution: window.devicePixelRatio })
     document.body.appendChild(_renderer.view)
     _renderer.view.style.position = 'fixed'
@@ -68,9 +66,5 @@ window.onload = function ()
 
     window.addEventListener('resize', resize)
 
-    PIXI.ticker.shared.add(() =>
-    {
-        _fps.frame()
-    })
     require('./highlight')()
 }
