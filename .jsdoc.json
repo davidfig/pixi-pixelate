@@ -1,5 +1,5 @@
 {
-    "applicationName": "pixi-scrollbox",
+    "applicationName": "pixi-pixelate",
     "disqus": "",
     "openGraph": {
         "title": "",
@@ -9,7 +9,7 @@
         "url": ""
     },
     "meta": {
-        "title": "DomEase",
+        "title": "pixi-pixelate",
         "description": "",
         "keyword": ""
     },
@@ -35,22 +35,18 @@
         "./node_modules/yy-jsdoc-template/plugins/skip-node_modules",
         "plugins/markdown"
     ],
-    "readmeShowNav": "Scrollbox",
+    "readmeShowNav": "Pixelate",
     "templates": {
         "default": {
             "outputSourceFiles": true
         },
-        "applicationName": "pixi-scrollbox",
+        "applicationName": "pixi-pixelate",
         "footer"        : "by YOPEY YOPEY LLC (yopeyopey.com)",
         "copyright"     : "Copyright © 2018 YOPEY YOPEY LLC.",
         "meta": {
-            "title": "pixi-scrollbox API Documentation",
-            "description": "Documentation for pixi-scrollbox library",
-            "keyword": "docs, documentation, html5, javascript, jsdoc, camera, scrollbox, bounce, snap, 2d"
-        },
-        "matomo": {
-            "url": "https://analytics.yopeyopey.com/piwik/",
-            "id": 13
+            "title": "pixi-pixelate API Documentation",
+            "description": "Documentation for pixi-pixelate library",
+            "keyword": "docs, documentation, html5, javascript, jsdoc, camera, pixelate, bounce, snap, 2d"
         }
     }
 }
