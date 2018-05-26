@@ -662,22 +662,29 @@ class Pixelate extends PIXI.Container
                     }
                 }
             }
-            active.sort((a, b) => { return a.x - b.x === 0 ? b.maxY - a.maxY : a.x - b.x })
-            let bit = true, current = 1
-            for (let x = active[0].x; x <= active[active.length - 1].x; x++)
+            if (active.length)
             {
-                if (bit)
+                active.sort((a, b) => { return a.x - b.x === 0 ? b.maxY - a.maxY : a.x - b.x })
+                let bit = true, current = 1
+                for (let x = active[0].x; x <= active[active.length - 1].x; x++)
                 {
-                    points.push([x, y])
-                }
-                if (active[current].x === x)
-                {
-                    if (active[current].maxY !== y)
+                    if (bit)
                     {
-                        bit = !bit
+                        points.push([x, y])
                     }
-                    current++
+                    if (active[current].x === x)
+                    {
+                        if (active[current].maxY !== y)
+                        {
+                            bit = !bit
+                        }
+                        current++
+                    }
                 }
+            }
+            else
+            {
+                return this
             }
         }
         this.drawPoints(points, tint, alpha)
